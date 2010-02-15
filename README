@@ -1,0 +1,24 @@
+Project: Open-OVF
+
+Website: http://barrel.mitre.org/ovfparse
+License: GPLv3
+Mailing list: 
+Source Code: http://barrel.mitre.org/ovfparse/ovfparse
+             git clone git://barrel.mitre.org/ovfparse/ovfparse/ovfparse.git
+
+Requirements
+------------
+ - ruby
+ - net/ftp
+ - xml parser
+
+Install
+-------
+
+
+Usage
+-----
+
+Useful tips
+-----------
+
