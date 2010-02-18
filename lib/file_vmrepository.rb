@@ -1,4 +1,6 @@
-class LocalRepository < Repository
+class FileVmRepository < VmRepository
+  def initialize
+  end
 
   def Repository.LSParse (raw_file_text) 
     file_list = Array.new 
@@ -28,7 +30,7 @@ class LocalRepository < Repository
 
       #parse out package list
       #if linux 
-      package_list = Repository::LSParse(raw_file_list)
+      package_list = VmRepository::LSParse(raw_file_list)
       #if windows 
       #package_list = Repository::DIRParse(file_list)
     

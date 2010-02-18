@@ -1,6 +1,8 @@
-class EsxRepository < Repository
+class Esx4VmRepository < VmRepository
+  def initialize
+  end
 
-  def Repository.ESXParse(raw_file_list) 
+  def VmRepository.ESXParse(raw_file_list) 
     file_list = Array.new 
     raw_file_list.each { |text_line|
       if text_line.include? "Name:" then
@@ -26,7 +28,7 @@ class EsxRepository < Repository
     pipe.close
      
     #parse out package list
-    package_list = Repository::ESXParse(raw_file_list)
+    package_list = VmRepository::ESXParse(raw_file_list)
     
     #construct package objects based on results
     return simplePackageConstruction(package_list)

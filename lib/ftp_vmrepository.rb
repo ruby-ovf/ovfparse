@@ -1,8 +1,10 @@
 require 'net/ftp'
 
-class FtpRepository < Repository
+class FtpVmRepository < VmRepository
+  def initialize
+  end
 
-  def Repository.FTParse (raw_text_arr)
+  def VmRepository.FTParse (raw_text_arr)
     file_list = Array.new
     raw_text_arr.each { |file_text| 
       ALLOWABLE_TYPES.each { |type| 
@@ -17,8 +19,6 @@ class FtpRepository < Repository
     return file_list    
   end
 
-
-
   def fetch
     #retrieve data from ftp server
     ftp = Net::FTP.new(url.split("/", 2)[0], "anonymous", "cops-bot@mitre.org")
@@ -29,7 +29,7 @@ class FtpRepository < Repository
 
     if (raw_text_arr) 
       #parse out package list from index html
-      package_list = Repository::FTParse(raw_text_arr)
+      package_list = VmRepository::FTParse(raw_text_arr)
 
       #construct package objects based on results
       return simplePackageConstruction(package_list)

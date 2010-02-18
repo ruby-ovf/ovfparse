@@ -1,8 +1,10 @@
 require 'net/ftp'
 
-class HttpRepository < Repository
+class HttpVmRepository < VmRepository
+  def initialize
+  end
 
-  def Repository.HTTParse (raw_html) 
+  def VmRepository.HTTParse (raw_html) 
     file_list = Array.new
     raw_html.each("</a>") { |file_text| 
       ALLOWABLE_TYPES.each { |type| 
