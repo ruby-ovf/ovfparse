@@ -69,10 +69,10 @@ end
   end
 
   def simplePackageConstruction(package_list)
-    require 'vmpackages'
+    require 'vmpackage'
     packages = Array.new
     package_list.each { |p|
-      package = VmPackage.new
+      package = VmPackage.create(self.protocol)
       package.name = p
       package.uri = uri + "/" + p
       package.version = 'Unknown'
@@ -83,7 +83,6 @@ end
     }
 
     return packages
-
   end
 
   def get 

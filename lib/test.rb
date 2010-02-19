@@ -31,7 +31,11 @@ puts "\n\n****************************\n"
 puts "protocol: " + vmRepo.protocol + "\n"
 puts "url: " + vmRepo.url + "\n"
 puts "uri: " + vmRepo.uri + "\n"
-puts vmRepo.fetch
+packages = vmRepo.fetch
+ovfTest = packages[1]
+ovfTest.get 
+
+
 #
 #uri = "esx4://test.com/test"
 #vmRepo = VmRepository.new(uri)
