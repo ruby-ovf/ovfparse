@@ -1,9 +1,9 @@
 require 'http_vmrepository'
+require 'net/https'
 
 class HttpsVmRepository < HttpVmRepository
 
   def get 
-    require 'net/https'
     url = URI.parse(self.uri)
     http = Net::HTTP.new(url.host, url.port)
     req = Net::HTTP::Get.new(url.path)

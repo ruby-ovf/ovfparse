@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 require 'vmrepository'
+require 'vmpackage'
 
 #uri = "file://../test_files"
 #vmRepo = VmRepository.create(uri)
@@ -15,7 +16,15 @@ require 'vmrepository'
 #puts "protocol: " + vmRepo.protocol + "\n"
 #puts "url: " + vmRepo.url + "\n"
 #puts "uri: " + vmRepo.uri + "\n"
-#puts vmRepo.fetch
+#packages = vmRepo.fetch
+#ovfTest = packages[1]
+#ovfTest.get 
+#puts ovfTest.xml
+
+package = VmPackage.create("http://localhost/repo/someOVF.ovf")
+package.get 
+#puts package.xml
+puts package.ProductSection
 
 #uri = "https://localhost/repo/"
 #vmRepo = VmRepository.create(uri)
@@ -23,17 +32,20 @@ require 'vmrepository'
 #puts "protocol: " + vmRepo.protocol + "\n"
 #puts "url: " + vmRepo.url + "\n"
 #puts "uri: " + vmRepo.uri + "\n"
-#puts vmRepo.fetch
-#
-uri = "ftp://localhost/repo"
-vmRepo = VmRepository.create(uri)
-puts "\n\n****************************\n"
-puts "protocol: " + vmRepo.protocol + "\n"
-puts "url: " + vmRepo.url + "\n"
-puts "uri: " + vmRepo.uri + "\n"
-packages = vmRepo.fetch
-ovfTest = packages[1]
-ovfTest.get 
+#packages = vmRepo.fetch
+#ovfTest = packages[1]
+#ovfTest.get 
+#puts ovfTest.xml
+
+#uri = "ftp://localhost/repo"
+#vmRepo = VmRepository.create(uri)
+#puts "\n\n****************************\n"
+#puts "protocol: " + vmRepo.protocol + "\n"
+#puts "url: " + vmRepo.url + "\n"
+#puts "uri: " + vmRepo.uri + "\n"
+#packages = vmRepo.fetch
+#ovfTest = packages[1]
+#ovfTest.get 
 
 
 #
