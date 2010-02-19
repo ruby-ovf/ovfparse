@@ -1,13 +1,9 @@
-require 'net/ftp'
-
 class HttpVmRepository < VmRepository
-  def initialize
-  end
 
   def VmRepository.HTTParse (raw_html) 
     file_list = Array.new
     raw_html.each("</a>") { |file_text| 
-      ALLOWABLE_TYPES.each { |type| 
+      ALLOWABLE_PKG_TYPES.each { |type| 
         if file_text.include? type then
             fragment = file_text.split("</a>")
             split_expr = (type + "\">")
@@ -21,13 +17,24 @@ class HttpVmRepository < VmRepository
   end
 
 
+  def get 
+    require 'net/http'
+    require 'net/https'
+    url = URI.parse(self.uri)
+    req = Net::HTTP::Get.new(url.path)
+    res = Net::HTTP.start(url.host, url.port) {|http|
+      http.request(req)
+    }
+    res.body
+  end
+
 
   def fetch
     #retrieve data from http server
-    if (raw_html = Repository.get(uri))  
+    if (raw_html = get)  
 
       #parse out package list from index html
-      package_list = Repository::HTTParse(raw_html) 
+      package_list = VmRepository::HTTParse(raw_html) 
   
       #construct package objects based on results
       return simplePackageConstruction(package_list)

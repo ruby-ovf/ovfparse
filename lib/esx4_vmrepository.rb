@@ -1,6 +1,4 @@
 class Esx4VmRepository < VmRepository
-  def initialize
-  end
 
   def VmRepository.ESXParse(raw_file_list) 
     file_list = Array.new 

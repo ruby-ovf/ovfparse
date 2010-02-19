@@ -1,20 +1,16 @@
-require 'net/ftp'
 require 'http_vmrepository'
 
 class HttpsVmRepository < HttpVmRepository
-  def initialize
-  end
 
-  def fetch
-      #retrieve data from http server
-      if (raw_html = VmRepository.get(uri))  
-
-        #parse out package list from index html
-        package_list = VmRepository::HTTParse(raw_html) 
-
-        #construct package objects based on results
-        return simplePackageConstruction(package_list)
-      end
+  def get 
+    require 'net/https'
+    url = URI.parse(self.uri)
+    http = Net::HTTP.new(url.host, url.port)
+    req = Net::HTTP::Get.new(url.path)
+    http.use_ssl = true
+    #req.basic_auth username, password
+    response = http.request(req)
+    return response.body
   end
 
 end

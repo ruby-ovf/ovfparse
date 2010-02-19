@@ -1,13 +1,11 @@
 require 'net/ftp'
 
 class FtpVmRepository < VmRepository
-  def initialize
-  end
 
   def VmRepository.FTParse (raw_text_arr)
     file_list = Array.new
     raw_text_arr.each { |file_text| 
-      ALLOWABLE_TYPES.each { |type| 
+      ALLOWABLE_PKG_TYPES.each { |type| 
         if file_text.include? type then
             fragment_arr = file_text.split(" ")
             file = fragment_arr.last

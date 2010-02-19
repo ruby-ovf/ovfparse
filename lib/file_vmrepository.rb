@@ -1,11 +1,9 @@
 class FileVmRepository < VmRepository
-  def initialize
-  end
 
-  def Repository.LSParse (raw_file_text) 
+  def VmRepository.LSParse (raw_file_text) 
     file_list = Array.new 
     raw_file_text.each { |file_text|
-      ALLOWABLE_TYPES.each { |type| 
+      ALLOWABLE_PKG_TYPES.each { |type| 
         if file_text.include? type then
           fragment_arr = file_text.split(" ")
           file = fragment_arr.last
@@ -17,12 +15,13 @@ class FileVmRepository < VmRepository
   end
 
 
-  def fetch
+  def fetch 
       #retrieve data from file system 
       #if linux
-      $cmd = "ls " + url
+      $cmd = "ls " + @url
       #if windows
       #$cmd = "dir " + url
+      #
 
       pipe = IO.popen $cmd
       raw_file_list = pipe.read

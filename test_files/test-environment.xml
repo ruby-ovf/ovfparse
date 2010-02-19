@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Environment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:ovfenv="http://schemas.dmtf.org/ovf/environment/1"
+             xmlns="http://schemas.dmtf.org/ovf/environment/1"
+             ovfenv:id="12">
+    <!-- Information about virtualization platform -->
+    <PlatformSection>
+       <Kind>Type of virtualization platform</Kind>
+       <Version>Version of virtualization platform</Version>
+       <Vendor>Vendor of virtualization platform</Vendor>
+       <Locale>Language and country code</Locale>
+    </PlatformSection>
+    <!--- Properties defined for this virtual machine -->
+    <PropertySection>
+       <!-- More properties -->
+    </PropertySection>
+    <Entity ovfenv:id="2">
+       <!-- More properties -->
+       <PlatformSection>
+          <Kind>Type of virtualization platform</Kind>
+          <Vendor>Vendor of virtualization platform</Vendor>
+          <Locale>Language and country code</Locale>
+       </PlatformSection>
+       <!--- Properties defined for this virtual machine -->
+       <PropertySection>
+       <Property ovfenv:key="UserName" ovfenv:value="Sharad Mishra"/>
+          <Property ovfenv:key="Passord" ovfenv:value="password111"/>
+          <Property ovfenv:key="IP" ovfenv:value="9.47.55.55"/>
+       </PropertySection>
+    </Entity>
+    <Entity ovfenv:id="3">
+       <!-- More properties -->
+    </Entity>
+</Environment>
+

@@ -1,6 +1,4 @@
 class Vc4VmRepository < VmRepository
-  def initialize
-  end
 
   def vcPackageConstruction(raw_file_list) 
     packages = Array.new 

@@ -1,0 +1,14 @@
+The file 'ourOVF.cert' was created with the following:
+
+cert=mycert-cert.pem
+privkey=mycert-private.pem
+
+openssl req -x509 -nodes -days 365 \
+  -subj '/C=US/ST=Michigan/L=Plymouth/CN=www.scott.mosers.us' \
+  -newkey rsa:512 -keyout $privkey -out $cert
+
+openssl dgst -hex -sha1 -sign $privkey -out tmp.hex ourOVF.mf
+
+cat tmp.hex $cert > ourOVF.cert
+
+

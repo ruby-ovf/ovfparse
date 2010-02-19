@@ -1,0 +1,17 @@
+# Disk DescriptorFile
+version=1
+CID=fd88f2e4
+parentCID=ffffffff
+createType="monolithicFlat"
+
+# Extent description
+RW 2097152 FLAT "Ubuntu1-flat.vmdk" 0
+
+# The Disk Data Base 
+#DDB
+
+ddb.virtualHWVersion = "4"
+ddb.geometry.cylinders = "512"
+ddb.geometry.heads = "128"
+ddb.geometry.sectors = "32"
+ddb.adapterType = "lsilogic"
