@@ -21,7 +21,7 @@ require 'vmpackage'
 #ovfTest.get 
 #puts ovfTest.xml
 
-package = VmPackage.create("http://localhost/repo/someOVF.ovf")
+package = VmPackage.create("file://ambrosia/public/vmlib/someOVF.ovf")
 package.get 
 #puts package.xml
 puts package.ProductSection

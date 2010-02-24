@@ -2,7 +2,7 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s| 
   s.name = "ovfparse"
-  s.version = "0.0.1"
+  s.version = "0.0.2"
   s.author = "Jim Barkley"
   s.email = "jbarkley@mitre.org"
   s.homepage = ""
