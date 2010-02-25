@@ -26,27 +26,21 @@ end
     @url.downcase
 
     if @protocol=='ftp'
-      require 'ftp_vmrepository'
       FtpVmRepository.new(uri) 
     elsif @protocol=='http'
-      require 'http_vmrepository'
       HttpVmRepository.new(uri) 
     elsif @protocol=='https'
-      require 'https_vmrepository'
       HttpsVmRepository.new(uri) 
     elsif @protocol=='file'
-      require 'file_vmrepository'
       FileVmRepository.new(uri) 
     elsif @protocol.match(/esx/)
       if @protocol.match(/esx4/) 
-        require 'esx4_vmrepository'
         Esx4VmRepository.new(uri) 
       else 
         raise NotImplementedError, "Cannot handle this version of ESX: " + @protocol + "\n"
       end
     elsif @protocol.match(/vc/)
       if @protocol.match(/vc4/) 
-        require 'vc4_vmrepository'
         Vc4VmRepository.new(uri) 
       else 
         raise NotImplementedError, "Cannot handle this version of VirtualCenter: " + @protocol + "\n"
@@ -69,7 +63,6 @@ end
   end
 
   def simplePackageConstruction(package_list)
-    require 'vmpackage'
     packages = Array.new
     package_list.each { |p|
       package = VmPackage.create(self.protocol)

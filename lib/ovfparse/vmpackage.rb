@@ -66,14 +66,12 @@ class VmPackage
       FileVmPackage.new(uri)
     elsif @protocol.match(/esx/)
       if @protocol.match(/esx4/)
-        require 'esx4_vmrepository'
         Esx4VmPackage.new(uri)
       else
         raise NotImplementedError, "Cannot handle this version of ESX: " + @protocol + "\n"
       end
     elsif @protocol.match(/vc/)
       if @protocol.match(/vc4/)
-        require 'vc4_vmrepository'
         Vc4VmPackage.new(uri)
       else
         raise NotImplementedError, "Cannot handle this version of VirtualCenter: " + @protocol + "\n"

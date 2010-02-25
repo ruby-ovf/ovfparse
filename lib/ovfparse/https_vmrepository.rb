@@ -1,4 +1,3 @@
-require 'http_vmrepository'
 class HttpsVmRepository < HttpVmRepository
 
   def get 

@@ -3,10 +3,14 @@ require 'nokogiri'
 require 'net/ftp'
 require 'net/http'
 require 'net/https'
-require 'pathname'
 
-dir = Pathname(__FILE__).dirname.expand_path
+path = File.expand_path(File.dirname(__FILE__))
 
-require dir + 'ovfparse/vmrepository'
-require dir + 'ovfparse/vmpackage'
-
+require path + '/ovfparse/vmrepository'
+require path + '/ovfparse/vmpackage'
+require path + '/ovfparse/esx4_vmrepository'
+require path + '/ovfparse/file_vmrepository'
+require path + '/ovfparse/ftp_vmrepository'
+require path + '/ovfparse/http_vmrepository'
+require path + '/ovfparse/https_vmrepository'
+require path + '/ovfparse/vc4_vmrepository'
