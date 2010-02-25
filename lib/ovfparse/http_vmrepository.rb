@@ -18,8 +18,6 @@ class HttpVmRepository < VmRepository
 
 
   def get 
-    require 'net/http'
-    require 'net/https'
     url = URI.parse(self.uri)
     req = Net::HTTP::Get.new(url.path)
     res = Net::HTTP.start(url.host, url.port) {|http|

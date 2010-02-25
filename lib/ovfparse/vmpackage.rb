@@ -1,7 +1,3 @@
-require 'rubygems'
-require 'net/http'
-require 'nokogiri'
-
 class VmPackage 
   @url
   @name

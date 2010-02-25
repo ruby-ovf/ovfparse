@@ -1,7 +1,12 @@
-require 'ovfparse/vmrepository'
-require 'ovfparse/vmpackage'
 require 'rubygems'
 require 'nokogiri'
+require 'net/ftp'
+require 'net/http'
+require 'net/https'
+require 'pathname'
 
-gem 'ovfparse', '>= 0.0.2'
+dir = Pathname(__FILE__).dirname.expand_path
+
+require dir + 'ovfparse/vmrepository'
+require dir + 'ovfparse/vmpackage'
 

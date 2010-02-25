@@ -1,6 +1,5 @@
 #!/usr/bin/ruby
-require 'vmrepository'
-require 'vmpackage'
+require 'ovfparse'
 
 #uri = "file://../test_files"
 #vmRepo = VmRepository.create(uri)
@@ -21,7 +20,8 @@ require 'vmpackage'
 #ovfTest.get 
 #puts ovfTest.xml
 
-package = VmPackage.create("file://ambrosia/public/vmlib/someOVF.ovf")
+#package = VmPackage.create("file://ambrosia/public/vmlib/someOVF.ovf")
+package = VmPackage.create("http://ambrosia/repo/someOVF.ovf")
 package.get 
 #puts package.xml
 puts package.ProductSection

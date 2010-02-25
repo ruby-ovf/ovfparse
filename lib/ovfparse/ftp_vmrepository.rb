@@ -1,5 +1,3 @@
-require 'net/ftp'
-
 class FtpVmRepository < VmRepository
 
   def VmRepository.FTParse (raw_text_arr)

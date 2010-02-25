@@ -1,6 +1,4 @@
 require 'http_vmrepository'
-require 'net/https'
-
 class HttpsVmRepository < HttpVmRepository
 
   def get 

@@ -6,19 +6,60 @@ Mailing list:
 Source Code: http://barrel.mitre.org/ovfparse/ovfparse
              git clone git://barrel.mitre.org/ovfparse/ovfparse/ovfparse.git
 
-Requirements
-------------
+== Requirements
+---------------
  - ruby
  - net/ftp
- - xml parser
+ - net/http
+ - net/https
+ - nokogiri xml parser (native gem)
 
-Install
--------
+== Install
+----------
 
 
-Usage
------
+== Usage 
+--------
+
+
+=== Example1
+------------
+uri = "file://../test_files"
+vmRepo = VmRepository.create(uri) #use factory method to get repo class
+puts "\n\n****************************\n"
+puts "protocol: " + vmRepo.protocol + "\n"
+puts "url: " + vmRepo.url + "\n"
+puts "uri: " + vmRepo.uri + "\n"
+puts vmRepo.fetch #shows all the packages available at the repo
+
+
+=== Example2
+------------
+# use factory method to get correct package type
+package = VmPackage.create("http://ambrosia/repo/someOVF.ovf")
+# retrieve package
+package.get 
+# spit out package xml
+puts package.xml
+
+
+=== Example3
+------------
+# use factory method to get correct package type
+package = VmPackage.create("http://ambrosia/repo/someOVF.ovf")
+# retrieve package
+package.get 
+# spit out specific xml section
+puts package.ProductSection
 
 Useful tips
 -----------
+'method_missing' is implemented to return xml nodes of the section that is named like the missing method.
+For example, if your xml has a section called <FirstName>some data</FirstName> you can simply 
+request the object through any of the following methods:
+
+ node = package.first_name()
+ node = package.first_name
+ node = package.FirstName()
+ node = package.FirstName
 
