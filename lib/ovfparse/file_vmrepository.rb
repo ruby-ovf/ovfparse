@@ -14,18 +14,25 @@ class FileVmRepository < VmRepository
     return file_list 
   end
 
+  def get 
+    #TODO slap a '/' char on the end of self.uri if it doesn't have one, otherwise many servers return 403 
+    #if linux
+    $cmd = "ls " + @url
+    #if windows
+    #$cmd = "dir " + url
+    #
+
+    pipe = IO.popen $cmd
+    raw_file_list = pipe.read
+    pipe.close
+      
+      return raw_file_list 
+  end 
+
 
   def fetch 
       #retrieve data from file system 
-      #if linux
-      $cmd = "ls " + @url
-      #if windows
-      #$cmd = "dir " + url
-      #
-
-      pipe = IO.popen $cmd
-      raw_file_list = pipe.read
-      pipe.close
+      raw_file_list = get
 
       #parse out package list
       #if linux 

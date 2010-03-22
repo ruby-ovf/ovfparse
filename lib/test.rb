@@ -20,11 +20,22 @@ require 'ovfparse'
 #ovfTest.get 
 #puts ovfTest.xml
 
+#repo = VmRepository.create(nil)
+#puts repo.inspect 
+
+            repo = VmRepository.create("http://cops-af-lib.mitre.org/") #shouldn't it uri and not url?
+
+            ovfs = repo.fetch
+            ovfs.each { |ovf|
+              ovf.fetch
+              products = ovf.ProductSection #equivalent to: (ovf.xml/'ProductSection')
+            }
+
 #package = VmPackage.create("file://ambrosia/public/vmlib/someOVF.ovf")
-package = VmPackage.create("http://ambrosia/repo/someOVF.ovf")
-package.get 
+#package = VmPackage.create("http://cops-af-lib.mitre.org//Base OS Package (jeos)-Ubuntu-20090917.ovf")
+#package.get 
 #puts package.xml
-puts package.ProductSection
+#puts package.ProductSection
 
 #uri = "https://localhost/repo/"
 #vmRepo = VmRepository.create(uri)

@@ -23,8 +23,8 @@ class VmPackage
 
   @state = UNKNOWN
 
-  attr_reader :url, :name, :version, :state, :protocol, :size, :xml 
-  attr_writer :url, :name, :version, :state, :protocol, :size, :xml
+  attr_accessor :url, :name, :version, :state, :protocol, :size, :xml
+
 
   def initialize 
   end 
@@ -43,7 +43,7 @@ class VmPackage
   end
 
   def initialize(uri)
-    (@protocol, @url) = uri.split(":", 2)
+    (@protocol, @url) = uri.split(":", 2) unless !uri
     @url.sub!(/^\/*/, '')
     @protocol.downcase
     @url.downcase
@@ -51,7 +51,7 @@ class VmPackage
   end 
 
   def self.create uri
-    (@protocol, @url) = uri.split(":", 2)
+    (@protocol, @url) = uri.split(":", 2) unless !uri
     @url.sub!(/^\/*/, '')
     @protocol.downcase
     @url.downcase
@@ -77,13 +77,13 @@ class VmPackage
         raise NotImplementedError, "Cannot handle this version of VirtualCenter: " + @protocol + "\n"
       end
     else
-      raise NotImplementedError, "Unknown Repository Protocol: " + @protocol + "\n"
+      raise NotImplementedError, "Unknown Protocol: " + @protocol + " (bad URI string?)\n"
       VmRepository.new(uri)
     end
   end
 
 
-  def get
+  def fetch
   end
 
   def method_missing(method)
@@ -118,8 +118,8 @@ class VmPackage
 end 
 
 class HttpVmPackage < VmPackage
-  def get 
-    url = URI.parse(self.uri)
+  def fetch 
+    url = URI.parse(URI.escape(self.uri))
     Net::HTTP.start(url.host) { |http|
       resp = http.get(url.path)
       open(@name, "wb") { |file|
@@ -137,8 +137,8 @@ class HttpVmPackage < VmPackage
 end
 
 class HttpsVmPackage < VmPackage
-  def get 
-    url = URI.parse(self.uri)
+  def fetch 
+    url = URI.parse(URI.escape(self.uri))
     http = Net::HTTP.new(url.host, url.port)
     req = Net::HTTP::Get.new(url.path)
     http.use_ssl = true
@@ -160,8 +160,8 @@ class HttpsVmPackage < VmPackage
 end
 
 class FtpVmPackage < VmPackage
-  def get 
-    url = URI.parse(self.uri)
+  def fetch 
+    url = URI.parse(URI.escape(self.uri))
     ftp = Net::FTP.new(url.host, "anonymous", "cops-bot@mitre.org")
       ftp.passive = true
       ftp.getbinaryfile(url.path, @name, 1024)
@@ -177,7 +177,7 @@ class FtpVmPackage < VmPackage
 end
 
 class FileVmPackage < VmPackage
-  def  get
+  def  fetch
     doc = Nokogiri::XML(File.open(@name)) do |config|
       config.options = Nokogiri::XML::ParseOptions.STRICT | Nokogiri::XML::ParseOptions.NOENT
     end

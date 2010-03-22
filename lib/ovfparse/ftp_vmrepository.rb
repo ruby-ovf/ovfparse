@@ -15,13 +15,19 @@ class FtpVmRepository < VmRepository
     return file_list    
   end
 
-  def fetch
-    #retrieve data from ftp server
+  def get 
+    #TODO slap a '/' char on the end of self.uri if it doesn't have one, otherwise many servers return 403 
     ftp = Net::FTP.new(url.split("/", 2)[0], "anonymous", "cops-bot@mitre.org")
     ftp.passive = true
     ftp.chdir(url.split("/", 2)[1])
     raw_text_arr = ftp.list()
     ftp.quit()
+    return raw_text_arr
+  end
+
+  def fetch
+    #retrieve data from ftp server
+    raw_text_arr = get 
 
     if (raw_text_arr) 
       #parse out package list from index html

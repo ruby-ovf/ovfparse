@@ -18,7 +18,8 @@ class HttpVmRepository < VmRepository
 
 
   def get 
-    url = URI.parse(self.uri)
+    #TODO slap a '/' char on the end of self.uri if it doesn't have one, otherwise many servers return 403 
+    url = URI.parse(URI.escape(self.uri))
     req = Net::HTTP::Get.new(url.path)
     res = Net::HTTP.start(url.host, url.port) {|http|
       http.request(req)

@@ -1,26 +1,26 @@
-
 class VmRepository
 
   STRICT_CHECKING = true
   USE_CACHE = true
-  ALLOWABLE_PKG_TYPES = ["ovf", "vmx", "ova"]
-  ALLOWABLE_PROTOCOLS = ["ftp", "http", "https", "file", "smb", "esx4", "vc4"] 
+#  ALLOWABLE_PKG_TYPES = ["ovf", "vmx", "ova"]
+  ALLOWABLE_PKG_TYPES = ["ovf"]
+#  ALLOWABLE_PROTOCOLS = ["ftp", "http", "https", "file", "smb", "esx4", "vc4"] 
+  ALLOWABLE_PROTOCOLS = ["ftp", "http", "https", "file"]
 
   @url = ''
   @protocol = ''
 
-  attr_writer :url, :protocol
-  attr_reader :url, :protocol, :repo
+  attr_accessor :url, :protocol, :repo
 
 def initialize(uri)
-    (@protocol, @url) = uri.split(":", 2)
+    (@protocol, @url) = uri.split(":", 2) unless !uri
     @url.sub!(/^\/*/, '')
     @protocol.downcase
     @url.downcase
 end 
 
   def self.create uri
-    (@protocol, @url) = uri.split(":", 2)
+    (@protocol, @url) = uri.split(":", 2) unless !uri
     @url.sub!(/^\/*/, '')
     @protocol.downcase
     @url.downcase
@@ -46,7 +46,7 @@ end
         raise NotImplementedError, "Cannot handle this version of VirtualCenter: " + @protocol + "\n"
       end
     else 
-      raise NotImplementedError, "Unknown Repository Protocol: " + @protocol + "\n"
+      raise NotImplementedError, "Unknown Repository Protocol: " + @protocol + " (bad URI string?)\n"
       VmRepository.new(uri) 
     end
   end
@@ -59,26 +59,22 @@ end
     end
   end
 
+  def get 
+  end
+
   def fetch 
   end
 
   def simplePackageConstruction(package_list)
     packages = Array.new
     package_list.each { |p|
-      package = VmPackage.create(self.protocol)
+      package = VmPackage.create(self.uri + "/" + p)
       package.name = p
-      package.uri = uri + "/" + p
-      package.version = 'Unknown'
-      package.state = VmPackage::UNKNOWN 
-#      package.repository_id = id
-
+      package.state = VmPackage::UNKNOWN
       packages.push(package)
     }
 
     return packages
-  end
-
-  def get 
   end
 
 end
