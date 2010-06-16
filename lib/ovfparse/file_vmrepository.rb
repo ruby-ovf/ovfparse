@@ -26,7 +26,7 @@ class FileVmRepository < VmRepository
     raw_file_list = pipe.read
     pipe.close
       
-      return raw_file_list 
+    return raw_file_list 
   end 
 
 

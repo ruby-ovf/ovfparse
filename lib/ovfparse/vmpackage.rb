@@ -178,8 +178,9 @@ end
 
 class FileVmPackage < VmPackage
   def  fetch
-    doc = Nokogiri::XML(File.open(@name)) do |config|
-      config.options = Nokogiri::XML::ParseOptions.STRICT | Nokogiri::XML::ParseOptions.NOENT
+    @xml = Nokogiri::XML(File.open(self.url)) do |config|
+      config.strict.noent
+      config.strict
     end
   end
 end
