@@ -44,7 +44,7 @@ class VmPackage
 
   def initialize(uri)
     (@protocol, @url) = uri.split(":", 2) unless !uri
-    @url.sub!(/^\/*/, '')
+    @url.sub!(/^\/{0,2}/, '')
     @protocol.downcase
     @url.downcase
     @name = uri.split('/').last
@@ -52,7 +52,7 @@ class VmPackage
 
   def self.create uri
     (@protocol, @url) = uri.split(":", 2) unless !uri
-    @url.sub!(/^\/*/, '')
+    @url.sub!(/^\/{0,2}/, '')
     @protocol.downcase
     @url.downcase
 
