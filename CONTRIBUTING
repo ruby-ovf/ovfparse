@@ -1,10 +1,10 @@
-Contributing to Open-ovf
+Contributing to ovfparse
 ========================
 
 License
 -------
 
-The project is licensed under GPL v3, so any contribution will be made
+The project is licensed under Apache 2.0, so any contribution will be made
 under this license. Make sure you read the LICENSE file, in case you have
 doubts about the license.
 
@@ -19,14 +19,13 @@ The scripts available in examples are also good for testing, and should be
 used to perform complete tests. Later the test suite will include
 complete tests as well.
 
-4) Patches should be in unified diff format (preferably using git).
+2) Patches should be in unified diff format (preferably using git).
 
-5) Make sure your patch applies correctly in the git tree in the day
+3) Make sure your patch applies correctly in the git tree in the day
 you're sending the patch out. Use a local personal branch to develop
 your feature and keep that in sync with the main tree (check
 "git rebase").
-
-6) Patches should be sent to 
+ 
 
 
 Sign your work
@@ -103,6 +102,4 @@ and protect the submitter from complaints. Note that under no circumstances
 can you change the author's identity (the From header), as it is the one
 which appears in the changelog.
 
-Coding style
-------------
 

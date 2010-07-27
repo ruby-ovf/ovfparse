@@ -1,10 +1,9 @@
 Project: Open-OVF
 
-Website: http://barrel.mitre.org/ovfparse
-License: GPLv3
-Mailing list: 
-Source Code: http://barrel.mitre.org/ovfparse/ovfparse
-             git clone git://barrel.mitre.org/ovfparse/ovfparse/ovfparse.git
+Website: http://github.com/ruby-ovf/ovfparse
+License: Apache 2.0
+Mailing list: ruby-ovf@googlegroups.com
+Source Code: git://github.com/ruby-ovf/ovfparse.git
 
 == Requirements
 ---------------
@@ -16,11 +15,12 @@ Source Code: http://barrel.mitre.org/ovfparse/ovfparse
 
 == Install
 ----------
-
-
-== Usage 
---------
-
+From inside your ovfparse directory:
+	$ rake gem
+	$ cd pkg
+	$ gem install ovfparse[-version]
+	
+[Coming soon: gem install ovfparse (from rubygems.org)]
 
 === Example1
 ------------
@@ -52,7 +52,7 @@ package.get
 # spit out specific xml section
 puts package.ProductSection
 
-Useful tips
+== Useful tips
 -----------
 'method_missing' is implemented to return xml nodes of the section that is named like the missing method.
 For example, if your xml has a section called <FirstName>some data</FirstName> you can simply 
