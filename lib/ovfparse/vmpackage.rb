@@ -20,6 +20,8 @@ class VmPackage
   COPYING = 4
   BOOTING = 5
   CONFIGURING = 6 
+  
+  OVF_NAMESPACE = {'ovf' => 'http://schemas.dmtf.org/ovf/envelope/1'}
 
   @state = UNKNOWN
 
@@ -85,7 +87,11 @@ class VmPackage
 
   def fetch
   end
-
+  
+  def referenced_file(element) 
+    @xml.xpath("//ovf:References/ovf:File[@ovf:id='#{element['fileRef']}']", OVF_NAMESPACE).first
+  end
+     
   def method_missing(method)
     puts "WARNING: NoSuchMethod Error: " + method.to_s + " ...trying XPath query \n"
   
