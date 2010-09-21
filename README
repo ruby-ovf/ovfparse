@@ -1,4 +1,4 @@
-Project: Open-OVF
+Project: ovfparse
 
 Website: http://github.com/ruby-ovf/ovfparse
 License: GPLv3
@@ -19,8 +19,9 @@ From inside your ovfparse directory:
 	$ rake gem
 	$ cd pkg
 	$ gem install ovfparse[-version]
-	
-[Coming soon: gem install ovfparse (from rubygems.org)]
+
+Or from RubyGems:	
+	$ gem install ovfparse 
 
 === Example1
 ------------
