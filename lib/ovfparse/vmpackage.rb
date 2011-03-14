@@ -164,7 +164,8 @@ class VmPackage
   end
 
   def getVmDescription
-    return xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:Info')[0].content
+    descNode = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:Info')[0]
+    return descNode.nil? ? '' : descNode.content
   end
 
   def getVmOS_ID
