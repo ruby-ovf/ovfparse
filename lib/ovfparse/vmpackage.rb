@@ -453,6 +453,7 @@ class VmPackage
            productNode.add_child(xml.create_element('Icon', {'ovf:fileRef' => productNode['class'] + '_icon'}))
            xml.xpath('ovf:Envelope/ovf:References')[0].add_child(xml.create_element('File', {'ovf:id' => productNode['class'] + '_icon', 'ovf:href' => new_icon}))
         else
+           productNode.add_child(iconNode)
            (xml.xpath('ovf:Envelope/ovf:References/ovf:File').detect { |fileNode| fileNode['id'] == iconNode['fileRef']})['ovf:href'] = new_icon
         end
      end
@@ -465,7 +466,7 @@ class VmPackage
         if((updated_value == '' || updated_value.nil?) && !element_node.nil?)
            element_node.unlink
         elsif(updated_value != '' && !updated_value.nil?)
-           element_node = element_node || parent_node.add_child(xml.create_element(element_details['node_ref'], updated_value))
+           element_node = element_node.nil? ? parent_node.add_child(xml.create_element(element_details['node_ref'], updated_value)) : parent_node.add_child(element_node)
            element_node.content = updated_value
            if(element_details['required'])
               element_node['ovf:required'] = 'false'
@@ -518,6 +519,7 @@ class VmPackage
        if(updated_property.nil?)
           propertyNode.unlink
        else
+          product.add_child(propertyNode)
           setAttributes(updated_property, propertyNode, PROPERTY_ATTRIBUTES)
           setElements(updated_property, propertyNode, PROPERTY_ELEMENTS)
           setValueOptions(propertyNode, updated_property)
@@ -544,7 +546,7 @@ class VmPackage
      if(values.empty? && !valueOptionsNode.nil?)
         valueOptionsNode.unlink
      elsif(!values.empty?)
-        valueOptionsNode = valueOptionsNode || property_node.add_child(xml.create_element('ValueOptions', {}))
+        valueOptionsNode = valueOptionsNode.nil? ? property_node.add_child(xml.create_element('ValueOptions', {})) : property_node.add_child(valueOptionsNode)
         valueOptionsNode.namespace = xml.root.namespace_definitions.detect{ |ns| ns.prefix == 'cops' }
         valueOptionsNode['cops:selection'] = (property.selection || 'single')
         valueOptionsNode['ovf:required'] = 'false'
@@ -564,7 +566,7 @@ class VmPackage
      if(actions.empty? && !actionsNode.nil?)
         actionsNode.unlink
      elsif(!actions.empty?)
-        actionsNode = actionsNode || property.add_child(xml.create_element('Action', {}))
+        actionsNode = actionsNode.nil? ? property.add_child(xml.create_element('Action', {})) : property.add_child(actionsNode)
         actionsNode.namespace = xml.root.namespace_definitions.detect{ |ns| ns.prefix == 'cops' }
         actionsNode['ovf:required'] = 'false'
         actionsNode.children.unlink
