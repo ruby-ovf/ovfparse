@@ -38,14 +38,14 @@ class VmPackage
                           {'full_name' => 'ovf:password', 'node_ref' => 'password', 'attribute_ref' => 'password'},
                           {'full_name' => 'ovf:required', 'node_ref' => 'required', 'attribute_ref' => 'required'},
                           {'full_name' => 'ovf:type', 'node_ref' => 'type', 'attribute_ref' => 'value_basetype'},
-                          {'full_name' => 'cops:valueType', 'node_ref' => 'valueType', 'attribute_ref' => 'valueType'},
-                          {'full_name' => 'cops:uuid', 'node_ref' => 'uuid', 'attribute_ref' => 'uuid'} ]
+                          {'full_name' => 'cops:valueType', 'node_ref' => 'valueType', 'attribute_ref' => 'valueType'}, # @todo refactor to cops extension module
+                          {'full_name' => 'cops:uuid', 'node_ref' => 'uuid', 'attribute_ref' => 'uuid'} ] # @todo refactor to cops extension module
 
   # List of elements in an OVF property that we will extract / set
   PROPERTY_ELEMENTS = [ {'full_name' => 'ovf:Label', 'node_ref' => 'Label', 'element_ref' => 'name', 'required' => false},
                         {'full_name' => 'ovf:Description', 'node_ref' => 'Description', 'element_ref' => 'description', 'required' => false},
-                        {'full_name' => 'cops:Example', 'node_ref' => 'cops:Example', 'element_ref' => 'example', 'required' => true},
-                        {'full_name' => 'cops:NoneType', 'node_ref' => 'cops:NoneType', 'element_ref' => 'nonetype', 'required' => true} ]
+                        {'full_name' => 'cops:Example', 'node_ref' => 'cops:Example', 'element_ref' => 'example', 'required' => true}, # @todo refactor to cops extension module
+                        {'full_name' => 'cops:NoneType', 'node_ref' => 'cops:NoneType', 'element_ref' => 'nonetype', 'required' => true} ] # @todo refactor to cops extension module
   
   OVF_NAMESPACE = {'ovf' => 'http://schemas.dmtf.org/ovf/envelope/1'}
 
@@ -172,11 +172,13 @@ class VmPackage
     return xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['id']
   end
 
+ # @todo refactor to cops extension module
   def getVmPatchLevel
     patchNode = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection/ovf:Description')[0]
     return patchNode.nil? ? '' : patchNode.text
   end
 
+ # @todo refactor to cops extension module, specifically, patch level
   def getVmAttributes
      return {
         'name' => getVmName,
@@ -212,7 +214,8 @@ class VmPackage
     return networks
   end
 
-  # What a long strange trip it's been.
+  # @todo refactor to cops extension module
+  # cpe and cops namespaces are not general purpose
   def getVmProducts
     products = Array.new
     xml.root.add_namespace('cops', 'http://cops.mitre.org/1.1')
@@ -253,6 +256,7 @@ class VmPackage
 
           valueOptionsArray = Array.new
           
+          # @todo refactor to cops extension module
           node = propertyNode.xpath('cops:ValueOptions')[0]
           if(!node.nil?)
              if (!node['selection'].nil?)
@@ -271,6 +275,7 @@ class VmPackage
 
           property['valueoptions'] = valueOptionsArray.join("\n")
 
+          # @todo refactor to cops extension module
           actions = Array.new
           node = propertyNode.xpath('cops:Action')[0]
           if(!node.nil?)
@@ -333,6 +338,8 @@ class VmPackage
     xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['ovf:id'] = newValue.to_s
   end
 
+  # @todo refactor to cops extension module
+  # currently we're using description field for vmpatchlevel
   def setVmPatchLevel(newValue)
     osNode = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]
     descNode = osNode.xpath('ovf:Description')[0] || osNode.add_child(xml.create_element('Description', {}))
@@ -486,6 +493,7 @@ class VmPackage
     virtualSystem = xml.xpath('ovf:Envelope/ovf:VirtualSystem')[0]
     productNodes = virtualSystem.xpath('ovf:ProductSection')
 
+    # @todo refactor to cops extension module, notice the "coat_properties"...
     # Removing old ones that don't exist anymore, updating ones that do
     productNodes.each { |productNode|
        updated_product = products.detect { |product| productNode['class'] == product.product_class }
@@ -511,6 +519,7 @@ class VmPackage
     }
   end
 
+  # @todo refactor to cops extension module, notice the "coat_properties"...
   def setProperties(product, properties)
      propertyNodes = product.xpath('ovf:Property')
 
@@ -540,6 +549,7 @@ class VmPackage
     }
   end
 
+  # @todo refactor to cops extension module
   def setValueOptions(property_node, property)
      values = property.valueoptions.split("\n")
      valueOptionsNode = property_node.xpath('cops:ValueOptions')[0]
@@ -561,6 +571,7 @@ class VmPackage
      end
   end
 
+  # @todo refactor to cops extension module
   def setActions(property, actions)
      actionsNode = property.xpath('cops:Action')[0]
      if(actions.empty? && !actionsNode.nil?)
@@ -592,6 +603,7 @@ class VmPackage
      end
   end
 
+  # @todo any need to make this a general purpose "writer" ?
   def self.construct_skeleton
      builder = Nokogiri::XML::Builder.new(:encoding => 'UTF-8') do |xml|
       xml.Envelope('xmlns' => 'http://schemas.dmtf.org/ovf/envelope/1', 'xmlns:cim' => "http://schemas.dmtf.org/wbem/wscim/1/common", 'xmlns:ovf' => "http://schemas.dmtf.org/ovf/envelope/1", 'xmlns:rasd' => "http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData", 'xmlns:vmw' => "http://www.vmware.com/schema/ovf", 'xmlns:vssd' => "http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData", 'xmlns:xsi' => "http://www.w3.org/2001/XMLSchema-instance") {
@@ -634,6 +646,7 @@ class VmPackage
              }
           }
       }
+      # @todo make this a general purpose signature
       node = Nokogiri::XML::Comment.new(xml.doc, ' skeleton framework constructed by COAT ')
       xml.doc.children[0].add_previous_sibling(node)
     end
@@ -644,6 +657,7 @@ class VmPackage
     xml.write_xml_to(file)
   end
 
+  # @todo make this a general purpose signing util
   def sign
     node = Nokogiri::XML::Comment.new(xml, ' made with love by the cops ovf authoring tool. ')
     xml.children[0].add_next_sibling(node)

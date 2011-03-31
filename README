@@ -39,7 +39,7 @@ puts vmRepo.fetch #shows all the packages available at the repo
 # use factory method to get correct package type
 package = VmPackage.create("http://ambrosia/repo/someOVF.ovf")
 # retrieve package
-package.get 
+package.fetch 
 # spit out package xml
 puts package.xml
 
@@ -49,7 +49,7 @@ puts package.xml
 # use factory method to get correct package type
 package = VmPackage.create("http://ambrosia/repo/someOVF.ovf")
 # retrieve package
-package.get 
+package.fetch 
 # spit out specific xml section
 puts package.ProductSection
 
