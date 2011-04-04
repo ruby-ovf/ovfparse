@@ -13,13 +13,6 @@ class VmPackage
   
   @type = nil
  
-  UNKNOWN = 0
-  INSTALLED = 1
-  NOT_INSTALLED = 2
-  UNINSTALLED = 3
-  COPYING = 4
-  BOOTING = 5
-  CONFIGURING = 6 
 
   # List of attributes in an OVF product that we will extract / set
   PRODUCT_ATTRIBUTES = [ {'full_name' => 'ovf:instance', 'node_ref' => 'instance', 'attribute_ref' => 'instance'},
@@ -49,7 +42,6 @@ class VmPackage
   
   OVF_NAMESPACE = {'ovf' => 'http://schemas.dmtf.org/ovf/envelope/1'}
 
-  @state = UNKNOWN
 
   attr_accessor :url, :name, :version, :state, :protocol, :size, :xml
 
@@ -172,13 +164,14 @@ class VmPackage
     return xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['id']
   end
 
- # @todo refactor to cops extension module
+  # note this is not part of the OVF spec. Specific users could overwrite this method to 
+  # store/retrieve patch level in the description field, for example.
   def getVmPatchLevel
-    patchNode = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection/ovf:Description')[0]
-    return patchNode.nil? ? '' : patchNode.text
   end
 
- # @todo refactor to cops extension module, specifically, patch level
+  def setVmPatchlevel
+  end
+
   def getVmAttributes
      return {
         'name' => getVmName,
@@ -214,99 +207,6 @@ class VmPackage
     return networks
   end
 
-  # @todo refactor to cops extension module
-  # cpe and cops namespaces are not general purpose
-  def getVmProducts
-    products = Array.new
-    xml.root.add_namespace('cops', 'http://cops.mitre.org/1.1')
-    xml.root.add_namespace('cpe', 'http://cpe.mitre.org/dictionary/2.0')
-
-    xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:ProductSection').each { |productNode|
-       product = Hash.new
-
-       PRODUCT_ATTRIBUTES.each { |attribute_details|
-          product[attribute_details['attribute_ref']] = productNode[attribute_details['node_ref']]
-       }
-
-       PRODUCT_ELEMENTS.each { |element_details|
-          childNode = productNode.xpath(element_details['full_name'])[0]
-          product[element_details['element_ref']] = childNode.nil? ? '' : childNode.content
-       }
-
-       childNode = productNode.xpath('ovf:Icon')[0]
-       begin
-       product['icon'] = childNode.nil? ? '' :
-          (xml.xpath('ovf:Envelope/ovf:References/ovf:File').detect { |file| file['id'] == childNode['fileRef'] })['href']
-       rescue
-          puts "You have an icon reference to a file that doesn't exist in the References section."
-          return ''
-       end
-       
-       properties = Array.new
-       productNode.xpath('ovf:Property').each { |propertyNode|
-          property = Hash.new
-          PROPERTY_ATTRIBUTES.each { |attribute_details|
-             property[attribute_details['attribute_ref']] = propertyNode[attribute_details['node_ref']]
-          }
-
-          PROPERTY_ELEMENTS.each { |element_details|
-             childNode = propertyNode.xpath(element_details['full_name'])[0]
-             property[element_details['element_ref']] = childNode.nil? ? '' : childNode.content
-          }
-
-          valueOptionsArray = Array.new
-          
-          # @todo refactor to cops extension module
-          node = propertyNode.xpath('cops:ValueOptions')[0]
-          if(!node.nil?)
-             if (!node['selection'].nil?)
-                property['selection'] = node['selection']
-             end
-             node.xpath('cops:Option').each { |valueOption|
-                valueOptionsArray.push(valueOption.content)
-             }
-          end
-
-          default = propertyNode['value']
-          existingDefault = valueOptionsArray.detect { |option| option == default }
-          if (!default.nil? && default != '' && existingDefault.nil?)
-             valueOptionsArray.insert(0, default)
-          end
-
-          property['valueoptions'] = valueOptionsArray.join("\n")
-
-          # @todo refactor to cops extension module
-          actions = Array.new
-          node = propertyNode.xpath('cops:Action')[0]
-          if(!node.nil?)
-             node.xpath('cops:FindReplace').each { |findReplace|
-                actions.push({'action_type' => 'FindReplace', 'path' => findReplace.xpath('cops:Path')[0].content, 'value' => findReplace.xpath('cops:Token')[0].content})
-             }
-             node.xpath('cops:Insert').each { |insert|
-                lineNumberNode = insert.xpath('cops:LineNumber')[0]
-                lineNumber = lineNumberNode.nil? ? '' : lineNumberNode.content
-                actions.push({'action_type' => 'Insert', 'path' => insert.xpath('cops:Path')[0].content, 'value' => lineNumber})
-             }
-             node.xpath('cops:Registry').each { |registry|
-                actions.push({'action_type' => 'Registry', 'path' => registry.xpath('cops:RegistryPath')[0].content, 'value' => ''})
-             }
-             node.xpath('cops:Execute').each { |execute|
-                optionsNode = execute.xpath('cops:Options')[0]
-                options = optionsNode.nil? ? '' : optionsNode.content
-                actions.push({'action_type' => 'Execute', 'path' => execute.xpath('cops:Path')[0].content, 'value' => options})
-             }
-
-          end
-          
-          container = [property, actions]
-          properties.push(container)
-       }
-       
-       container = [product, properties]
-       products.push(container)
-    }
-    return products
-  end
 
   def getVmCPUs
     return getVirtualQuantity(3)
@@ -338,13 +238,6 @@ class VmPackage
     xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['ovf:id'] = newValue.to_s
   end
 
-  # @todo refactor to cops extension module
-  # currently we're using description field for vmpatchlevel
-  def setVmPatchLevel(newValue)
-    osNode = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]
-    descNode = osNode.xpath('ovf:Description')[0] || osNode.add_child(xml.create_element('Description', {}))
-    descNode.content = newValue
-  end
 
   def setVmCPUs(newValue)
     setVirtualQuantity(3, newValue)
@@ -489,119 +382,6 @@ class VmPackage
      }
   end
 
-  def setVmProducts(products)
-    virtualSystem = xml.xpath('ovf:Envelope/ovf:VirtualSystem')[0]
-    productNodes = virtualSystem.xpath('ovf:ProductSection')
-
-    # @todo refactor to cops extension module, notice the "coat_properties"...
-    # Removing old ones that don't exist anymore, updating ones that do
-    productNodes.each { |productNode|
-       updated_product = products.detect { |product| productNode['class'] == product.product_class }
-       if(updated_product.nil?)
-          productNode.unlink
-       else
-          setAttributes(updated_product, productNode, PRODUCT_ATTRIBUTES)
-          setElements(updated_product, productNode, PRODUCT_ELEMENTS)
-          setProductIcon(updated_product.icon, productNode)
-          setProperties(productNode, updated_product.coat_properties)
-       end
-    }
-
-    # Adding new products
-    products.each { |product|
-       if((productNodes.detect { |node| node['class'] == product.product_class }).nil?)
-          newProductNode = virtualSystem.add_child(xml.create_element('ProductSection', {}))
-          setAttributes(product, newProductNode, PRODUCT_ATTRIBUTES)
-          setElements(product, newProductNode, PRODUCT_ELEMENTS)
-          setProductIcon(product.icon, newProductNode)
-          setProperties(newProductNode, product.coat_properties)
-       end
-    }
-  end
-
-  # @todo refactor to cops extension module, notice the "coat_properties"...
-  def setProperties(product, properties)
-     propertyNodes = product.xpath('ovf:Property')
-
-     propertyNodes.each { |propertyNode|
-       updated_property = properties.detect { |property| propertyNode['key'] == property.key }
-       if(updated_property.nil?)
-          propertyNode.unlink
-       else
-          product.add_child(propertyNode)
-          setAttributes(updated_property, propertyNode, PROPERTY_ATTRIBUTES)
-          setElements(updated_property, propertyNode, PROPERTY_ELEMENTS)
-          setValueOptions(propertyNode, updated_property)
-          propertyNode['ovf:type'] = 'string'
-          setActions(propertyNode, updated_property.coat_actions)
-       end
-    }
-
-    properties.each { |property|
-       if((propertyNodes.detect { |node| node['key'] == property.key }).nil?)
-          newPropertyNode = product.add_child(xml.create_element('Property', {}))
-          setAttributes(property, newPropertyNode, PROPERTY_ATTRIBUTES)
-          setElements(property, newPropertyNode, PROPERTY_ELEMENTS)
-          setValueOptions(newPropertyNode, property)
-          newPropertyNode['ovf:type'] = 'string'
-          setActions(newPropertyNode, property.coat_actions)
-       end
-    }
-  end
-
-  # @todo refactor to cops extension module
-  def setValueOptions(property_node, property)
-     values = property.valueoptions.split("\n")
-     valueOptionsNode = property_node.xpath('cops:ValueOptions')[0]
-     if(values.empty? && !valueOptionsNode.nil?)
-        valueOptionsNode.unlink
-     elsif(!values.empty?)
-        valueOptionsNode = valueOptionsNode.nil? ? property_node.add_child(xml.create_element('ValueOptions', {})) : property_node.add_child(valueOptionsNode)
-        valueOptionsNode.namespace = xml.root.namespace_definitions.detect{ |ns| ns.prefix == 'cops' }
-        valueOptionsNode['cops:selection'] = (property.selection || 'single')
-        valueOptionsNode['ovf:required'] = 'false'
-        valueOptionsNode.children.unlink
-        existingDefault = values.detect { |value| value == property.value }
-        if(property.value != '' && !property.value.nil? && existingValue.nil?)
-           valueOptionsNode.add_child(xml.create_element('Option', property.value))
-        end
-        values.each { |value|
-           valueOptionsNode.add_child(xml.create_element('Option', value))
-        }
-     end
-  end
-
-  # @todo refactor to cops extension module
-  def setActions(property, actions)
-     actionsNode = property.xpath('cops:Action')[0]
-     if(actions.empty? && !actionsNode.nil?)
-        actionsNode.unlink
-     elsif(!actions.empty?)
-        actionsNode = actionsNode.nil? ? property.add_child(xml.create_element('Action', {})) : property.add_child(actionsNode)
-        actionsNode.namespace = xml.root.namespace_definitions.detect{ |ns| ns.prefix == 'cops' }
-        actionsNode['ovf:required'] = 'false'
-        actionsNode.children.unlink
-        actions.each { |action|
-           newActionNode = actionsNode.add_child(xml.create_element(action.action_type, {}))
-           if(action.action_type == 'FindReplace')
-              newActionNode.add_child(xml.create_element('Path', action.path))
-              newActionNode.add_child(xml.create_element('Token', action.value))
-           elsif(action.action_type == 'Insert')
-              newActionNode.add_child(xml.create_element('Path', action.path))
-              if(action.value != '' && !action.value.nil?)
-                 newActionNode.add_child(xml.create_element('LineNumber', action.value))
-              end
-           elsif(action.action_type == 'Registry')
-              newActionNode.add_child(xml.create_element('RegistryPath', action.path))
-           elsif(action.action_type == 'Execute')
-              newActionNode.add_child(xml.create_element('Path', action.path))
-              if(action.value != '' && !action.value.nil?)
-                 newActionNode.add_child(xml.create_element('Options', action.value))
-              end
-           end
-        }
-     end
-  end
 
   # @todo any need to make this a general purpose "writer" ?
   def self.construct_skeleton
@@ -646,8 +426,8 @@ class VmPackage
              }
           }
       }
-      # @todo make this a general purpose signature
-      node = Nokogiri::XML::Comment.new(xml.doc, ' skeleton framework constructed by COAT ')
+
+      node = Nokogiri::XML::Comment.new(xml.doc, ' skeleton framework constructed by OVFparse ')
       xml.doc.children[0].add_previous_sibling(node)
     end
     return builder.to_xml
@@ -658,8 +438,8 @@ class VmPackage
   end
 
   # @todo make this a general purpose signing util
-  def sign
-    node = Nokogiri::XML::Comment.new(xml, ' made with love by the cops ovf authoring tool. ')
+  def sign(signature)
+    node = Nokogiri::XML::Comment.new(xml, signature)
     xml.children[0].add_next_sibling(node)
   end
 
