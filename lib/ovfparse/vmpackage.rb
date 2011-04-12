@@ -430,7 +430,10 @@ class VmPackage
       node = Nokogiri::XML::Comment.new(xml.doc, ' skeleton framework constructed by OVFparse ')
       xml.doc.children[0].add_previous_sibling(node)
     end
-    return builder.to_xml
+
+    newPackage = NewVmPackage.new
+    newPackage.xml = builder.doc
+    return newPackage
   end
 
   def write_xml(file)
@@ -513,6 +516,11 @@ class FileVmPackage < VmPackage
     @xml = Nokogiri::XML(File.open(self.url)) do |config|
       config.noblanks.strict.noent
     end
+  end
+end
+
+class NewVmPackage < VmPackage
+  def initialize
   end
 end
 
