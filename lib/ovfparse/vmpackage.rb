@@ -139,7 +139,7 @@ class VmPackage
   end
 
   def checkschema(schema)
-    xsd = Nokogiri::XML::Schema(File.read(schema))
+    xsd = Nokogiri::XML::Schema(schema)
     response = ""
 
     isValid = true    
