@@ -70,7 +70,8 @@ end
     package_list.each { |p|
       package = VmPackage.create(self.uri + "/" + p)
       package.name = p
-      package.state = VmPackage::UNKNOWN
+# @todo remove this, or fix it. Supposed to be handled with a COPS mix-in
+#      package.state = VmPackage::UNKNOWN
       packages.push(package)
     }
 
