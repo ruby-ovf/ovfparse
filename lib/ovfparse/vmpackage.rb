@@ -12,7 +12,8 @@ class VmPackage
   ISO = 2
   
   @type = nil
- 
+
+  DEBUG_MODE = false
 
   # List of attributes in an OVF product that we will extract / set
   PRODUCT_ATTRIBUTES = [ {'full_name' => 'ovf:instance', 'node_ref' => 'instance', 'attribute_ref' => 'instance'},
@@ -63,6 +64,10 @@ class VmPackage
   end
 
   def initialize(uri)
+    if (URI::HTTP==uri.class) then
+      uri = uri.to_s 
+    end
+
     (@protocol, @url) = uri.split(":", 2) unless !uri
     @url.sub!(/^\/{0,2}/, '')
     @protocol.downcase
@@ -111,7 +116,9 @@ class VmPackage
   end
      
   def method_missing(method)
-    puts "WARNING: NoSuchMethod Error: " + method.to_s + " ...trying XPath query \n"
+    if DEBUG_MODE
+      puts "WARNING: NoSuchMethod Error: " + method.to_s + " ...trying XPath query \n"
+    end 
   
     # try with namespace
     data = @xml.xpath("//ovf:" + method.to_s)
@@ -163,6 +170,12 @@ class VmPackage
   def getVmOS_ID
     return xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['id']
   end
+
+    def getVmOS
+      osType = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['osType']
+      return (osType == '' ? 'unknown' : osType)
+    end 
+
 
   # note this is not part of the OVF spec. Specific users could overwrite this method to 
   # store/retrieve patch level in the description field, for example.

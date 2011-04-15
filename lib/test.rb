@@ -40,7 +40,7 @@ puts "\n\n****************************\n"
 # 
 # package = VmPackage.create("file://ambrosia/public/vmlib/someOVF.ovf")
 # package = VmPackage.create("http://cops-af-lib.mitre.org//Base OS Package (jeos)-Ubuntu-20090917.ovf")
-# package.get 
+# package.fetch 
 # puts package.xml
 # puts package.ProductSection
 # 
@@ -52,7 +52,7 @@ puts "\n\n****************************\n"
 # puts "uri: " + vmRepo.uri + "\n"
 # packages = vmRepo.fetch
 # ovfTest = packages[1]
-# ovfTest.get 
+# ovfTest.fetch 
 # puts ovfTest.xml
 # 
 # uri = "ftp://localhost/repo"
@@ -63,7 +63,7 @@ puts "\n\n****************************\n"
 # puts "uri: " + vmRepo.uri + "\n"
 # packages = vmRepo.fetch
 # ovfTest = packages[1]
-# ovfTest.get 
+# ovfTest.fetch 
 
 
 #
