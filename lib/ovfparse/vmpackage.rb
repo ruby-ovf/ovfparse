@@ -10,6 +10,11 @@ class VmPackage
   OVA = 0
   OVF = 1
   ISO = 2
+
+  @references
+  @diskSection
+  @networkSection
+  @virtualSystem
   
   @type = nil
 
@@ -44,7 +49,7 @@ class VmPackage
   OVF_NAMESPACE = {'ovf' => 'http://schemas.dmtf.org/ovf/envelope/1'}
 
 
-  attr_accessor :url, :name, :version, :state, :protocol, :size, :xml
+  attr_accessor :url, :name, :version, :state, :protocol, :size, :xml, :references, :diskSection, :networkSection, :virtualSystem
 
 
   def initialize 
@@ -110,7 +115,44 @@ class VmPackage
 
   def fetch
   end
+
+
+  # Caches all of the base elements inside Envelope for fast access
+  def loadElementRefs
+     children = @xml.root.children
+
+     @references = children[0]
+     if(@references.name != 'References')
+        @references = getChildByName(xml.root, 'References')
+     end
+
+     @diskSection = children[1]
+     if(@diskSection.name != 'DiskSection')
+        @diskSection = getChildByName(xml.root, 'DiskSection')
+     end
+
+     @networkSection = children[2]
+     if(@networkSection.name != 'NetworkSection')
+        @networkSection = getChildByName(xml.root, 'NetworkSection')
+     end
+
+     @virtualSystem = children[3]
+     if(@virtualSystem.name != 'VirtualSystem')
+        @virtualSystem = getChildByName(xml.root, 'VirtualSystem')
+     end
+
+  end
   
+  # Returns the first child node of the passed node whose name matches the passed name.
+  def getChildByName(node, childName)
+     return node.children.detect{ |element| element.name == childName}
+  end
+
+  # Returns every child node of the passed node whose name matches the passed name.
+  def getChildrenByName(node, childName)
+     return node.children.select{ |element| element.name == childName}
+  end
+
   def referenced_file(element) 
     @xml.xpath("//ovf:References/ovf:File[@ovf:id='#{element['fileRef']}']", OVF_NAMESPACE).first
   end
@@ -159,22 +201,21 @@ class VmPackage
   end
 
   def getVmName
-    return xml.xpath('ovf:Envelope/ovf:VirtualSystem')[0]['id']
+    return virtualSystem['id']
   end
 
   def getVmDescription
-    descNode = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:Info')[0]
+    descNode = getChildByName(virtualSystem, 'Info')
     return descNode.nil? ? '' : descNode.content
   end
 
   def getVmOS_ID
-    return xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['id']
+    return getChildByName(virtualSystem, 'OperatingSystemSection')['id']
   end
 
-    def getVmOS
-      osType = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['osType']
-      return (osType == '' ? 'unknown' : osType)
-    end 
+  def getVmOS
+    return OS_ID_TABLE[getVmOS_ID.to_i]
+  end 
 
 
   # note this is not part of the OVF spec. Specific users could overwrite this method to 
@@ -199,11 +240,11 @@ class VmPackage
   def getVmDisks
     disks = Array.new
     filenames = Hash.new
-    xml.xpath('ovf:Envelope/ovf:References/ovf:File').each { |node|
+    getChildrenByName(references, 'File').each { |node|
       filenames[node['id']] = node['href']
     }
 
-    xml.xpath('ovf:Envelope/ovf:DiskSection/ovf:Disk').each { |node|
+    getChildrenByName(diskSection, 'Disk').each { |node|
       disks.push({ 'name' => node['diskId'], 'location' => filenames[node['fileRef']], 'size' => node['capacity'] })
     }
 
@@ -212,8 +253,8 @@ class VmPackage
 
   def getVmNetworks
     networks = Array.new
-    xml.xpath('ovf:Envelope/ovf:NetworkSection/ovf:Network').each { |node|
-      descriptionNode = node.xpath('ovf:Description')[0]
+    getChildrenByName(networkSection, 'Network').each { |node|
+      descriptionNode = getChildByName(node, 'Description')
       text = descriptionNode.nil? ? '' : descriptionNode.text
       networks.push({'location' => node['name'], 'notes' => text })
     }
@@ -230,25 +271,25 @@ class VmPackage
   end
 
   def getVirtualQuantity(resource)
-    xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/ovf:Item').each { |node|
+    getChildrenByName(getChildByName(virtualSystem, 'VirtualHardwareSection'), 'Item').each{ |node|
       resourceType = node.xpath('rasd:ResourceType')[0].text
       resourceType == resource.to_s ? (return node.xpath('rasd:VirtualQuantity')[0].text) : next
     }
   end
 
   def setVmName(newValue)
-    xml.xpath('ovf:Envelope/ovf:VirtualSystem')[0]['ovf:id'] = newValue
-    nameNode = xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:Name')[0] ||
-       xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:Info')[0].add_next_sibling(xml.create_element('Name', {}))
+    virtualSystem['ovf:id'] = newValue
+    nameNode = getChildByName(virtualSystem, 'Name') ||
+       getChildByName(virtualSystem, 'Info').add_next_sibling(xml.create_element('Name', {}))
     nameNode.content = newValue
   end
 
   def setVmDescription(newValue)
-    xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:Info')[0].content = newValue
+    getChildByName(virtualSystem, 'Info').content = newValue
   end
 
   def setVmOS_ID(newValue)
-    xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:OperatingSystemSection')[0]['ovf:id'] = newValue.to_s
+    getChildByName(virtualSystem, 'OperatingSystemSection')['ovf:id'] = newValue.to_s
   end
 
 
@@ -261,22 +302,21 @@ class VmPackage
   end
 
   def setVirtualQuantity(resource, newValue)
-    xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/ovf:Item').each { |node|
+    getChildrenByName(getChildByName(virtualSystem, 'VirtualHardwareSection'), 'Item').each { |node|
       resourceType = node.xpath('rasd:ResourceType')[0].text
       resourceType == resource.to_s ? (node.xpath('rasd:VirtualQuantity')[0].content = newValue) : next
     }
   end
 
   def setVmNetworks(networks)
-     networkSection = xml.xpath('ovf:Envelope/ovf:NetworkSection')[0]
-     networkNodes = networkSection.xpath('ovf:Network')
-    
+     networkNodes = getChildrenByName(networkSection, 'Network')
+
      networkNodes.each { |node|
         updated_network = networks.detect { |network| network.location == node['name'] }
         if(updated_network.nil?)
            node.unlink
         else
-           descriptionNode = node.xpath('ovf:Description')[0]
+           descriptionNode = getChildByName(node, 'Description')
            if((updated_network.notes == '' || updated_network.notes.nil?) && !descriptionNode.nil?)
               descriptionNode.unlink
            elsif(updated_network.notes != '' && !updated_network.notes.nil?)
@@ -297,14 +337,11 @@ class VmPackage
   end
 
   def setVmDisks(disks)
-     fileSection = xml.xpath('ovf:Envelope/ovf:References')[0]
-     fileNodes = fileSection.xpath('ovf:File')
-
-     diskSection = xml.xpath('ovf:Envelope/ovf:DiskSection')[0]
-     diskNodes = diskSection.xpath('ovf:Disk')
+     fileNodes = getChildrenByName(references, 'File')
+     diskNodes = getChildrenByName(diskSection, 'Disk')
 
      icons = Array.new
-     xml.xpath('ovf:Envelope/ovf:VirtualSystem/ovf:ProductSection/ovf:Icon').each { |node|
+     getChildrenByName(getChildByName(virtualSystem, 'ProductSection'), 'Icon').each { |node|
         icons.push(node['fileRef'])
      }
 
@@ -330,7 +367,7 @@ class VmPackage
      disks.each { |disk|
         if( (fileNodes.detect { |node| disk.location == node['href'] }).nil?)
            diskSection.add_child(xml.create_element('Disk', {'ovf:capacity' => disk.size.to_s, 'ovf:capacityAllocationUnits' => "byte * 2^30", 'ovf:diskId' => disk.name, 'ovf:fileRef' => disk.name + '_disk', 'ovf:format' => "http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" }))
-           fileSection.add_child(xml.create_element('File', {'ovf:href' => disk.location, 'ovf:id' => disk.name + '_disk'}))
+           references.add_child(xml.create_element('File', {'ovf:href' => disk.location, 'ovf:id' => disk.name + '_disk'}))
         end
      }
   end
@@ -357,17 +394,17 @@ class VmPackage
   end
 
   def setProductIcon(new_icon, productNode)
-     iconNode = productNode.xpath('ovf:Icon')[0]
+     iconNode = getChildByName(productNode, 'Icon')
      if((new_icon == '' || new_icon.nil?) && !iconNode.nil?)
-        (xml.xpath('ovf:Envelope/ovf:References/ovf:File').detect { |fileNode| fileNode['id'] == iconNode['fileRef']}).unlink
+        getChildrenByName(references, 'File').detect { |fileNode| fileNode['id'] == iconNode['fileRef']}.unlink
         iconNode.unlink
      elsif(new_icon != '' && !new_icon.nil?)
         if(iconNode.nil?)
            productNode.add_child(xml.create_element('Icon', {'ovf:fileRef' => productNode['class'] + '_icon'}))
-           xml.xpath('ovf:Envelope/ovf:References')[0].add_child(xml.create_element('File', {'ovf:id' => productNode['class'] + '_icon', 'ovf:href' => new_icon}))
+           references.add_child(xml.create_element('File', {'ovf:id' => productNode['class'] + '_icon', 'ovf:href' => new_icon}))
         else
            productNode.add_child(iconNode)
-           (xml.xpath('ovf:Envelope/ovf:References/ovf:File').detect { |fileNode| fileNode['id'] == iconNode['fileRef']})['ovf:href'] = new_icon
+           getChildrenByName(references, 'File').detect { |fileNode| fileNode['id'] == iconNode['fileRef']}['ovf:href'] = new_icon
         end
      end
   end
@@ -446,6 +483,7 @@ class VmPackage
 
     newPackage = NewVmPackage.new
     newPackage.xml = builder.doc
+    newPackage.loadElementRefs
     return newPackage
   end
 
@@ -481,6 +519,7 @@ class HttpVmPackage < VmPackage
     end
 
     File.unlink(@name)   
+    loadElementRefs
   end
 end
 
@@ -502,6 +541,7 @@ class HttpsVmPackage < VmPackage
     end
   
     File.unlink(@name)   
+    loadElementRefs
   end
 
 
@@ -521,6 +561,7 @@ class FtpVmPackage < VmPackage
     end
   
     File.unlink(@name)   
+    loadElementRefs
   end 
 end
 
@@ -529,6 +570,7 @@ class FileVmPackage < VmPackage
     @xml = Nokogiri::XML(File.open(self.url)) do |config|
       config.noblanks.strict.noent
     end
+    loadElementRefs
   end
 end
 
