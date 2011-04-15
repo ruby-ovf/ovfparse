@@ -25,10 +25,10 @@ class VmPackage
                          {'full_name' => 'ovf:class', 'node_ref' => 'class', 'attribute_ref' => 'product_class'} ]
 
   # List of elements in an OVF product that we will extract / set
-  PRODUCT_ELEMENTS = [ {'full_name' => 'ovf:Info', 'node_ref' => 'Info', 'element_ref' => 'description', 'required' => false},
-                       {'full_name' => 'ovf:Product', 'node_ref' => 'Product', 'element_ref' => 'name', 'required' => false},
-                       {'full_name' => 'ovf:Vendor', 'node_ref' => 'Vendor', 'element_ref' => 'vendor', 'required' => false},
-                       {'full_name' => 'ovf:Version', 'node_ref' => 'Version', 'element_ref' => 'version', 'required' => false} ]
+  PRODUCT_ELEMENTS = [ {'full_name' => 'Info', 'node_ref' => 'Info', 'element_ref' => 'description', 'required' => false},
+                       {'full_name' => 'Product', 'node_ref' => 'Product', 'element_ref' => 'name', 'required' => false},
+                       {'full_name' => 'Vendor', 'node_ref' => 'Vendor', 'element_ref' => 'vendor', 'required' => false},
+                       {'full_name' => 'Version', 'node_ref' => 'Version', 'element_ref' => 'version', 'required' => false} ]
 
   # List of attributes in an OVF property that we will extract / set
   PROPERTY_ATTRIBUTES = [ {'full_name' => 'ovf:value', 'node_ref' => 'value', 'attribute_ref' => 'value'},
@@ -41,10 +41,10 @@ class VmPackage
                           {'full_name' => 'cops:uuid', 'node_ref' => 'uuid', 'attribute_ref' => 'uuid'} ] # @todo refactor to cops extension module
 
   # List of elements in an OVF property that we will extract / set
-  PROPERTY_ELEMENTS = [ {'full_name' => 'ovf:Label', 'node_ref' => 'Label', 'element_ref' => 'name', 'required' => false},
-                        {'full_name' => 'ovf:Description', 'node_ref' => 'Description', 'element_ref' => 'description', 'required' => false},
-                        {'full_name' => 'cops:Example', 'node_ref' => 'cops:Example', 'element_ref' => 'example', 'required' => true}, # @todo refactor to cops extension module
-                        {'full_name' => 'cops:NoneType', 'node_ref' => 'cops:NoneType', 'element_ref' => 'nonetype', 'required' => true} ] # @todo refactor to cops extension module
+  PROPERTY_ELEMENTS = [ {'full_name' => 'Label', 'node_ref' => 'Label', 'element_ref' => 'name', 'required' => false},
+                        {'full_name' => 'Description', 'node_ref' => 'Description', 'element_ref' => 'description', 'required' => false},
+                        {'full_name' => 'Example', 'node_ref' => 'cops:Example', 'element_ref' => 'example', 'required' => true}, # @todo refactor to cops extension module
+                        {'full_name' => 'NoneType', 'node_ref' => 'cops:NoneType', 'element_ref' => 'nonetype', 'required' => true} ] # @todo refactor to cops extension module
   
   OVF_NAMESPACE = {'ovf' => 'http://schemas.dmtf.org/ovf/envelope/1'}
 
