@@ -69,6 +69,7 @@ end
     packages = Array.new
     package_list.each { |p|
       package = VmPackage.create(self.uri + "/" + p)
+      package.base_path = self.uri + "/"
       package.name = p
 # @todo remove this, or fix it. Supposed to be handled with a COPS mix-in
 #      package.state = VmPackage::UNKNOWN
