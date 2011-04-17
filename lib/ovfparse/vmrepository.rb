@@ -19,13 +19,15 @@ def initialize(uri)
     @url.downcase
 end 
 
-  def self.create uri
+  def self.create(uri, managed)
     (@protocol, @url) = uri.split(":", 2) unless !uri
     @url.sub!(/^\/{0,2}/, '')
     @protocol.downcase
     @url.downcase
 
-    if @protocol=='ftp'
+    if(managed)
+      MarketplaceRepository.new(uri)
+    elsif @protocol=='ftp'
       FtpVmRepository.new(uri) 
     elsif @protocol=='http'
       HttpVmRepository.new(uri) 

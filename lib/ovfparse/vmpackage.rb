@@ -1,5 +1,8 @@
+require 'open-uri'
+
 class VmPackage 
   @url
+  @base_path
   @name
   @version
   @protocol
@@ -49,7 +52,7 @@ class VmPackage
   OVF_NAMESPACE = {'ovf' => 'http://schemas.dmtf.org/ovf/envelope/1'}
 
 
-  attr_accessor :url, :name, :version, :state, :protocol, :size, :xml, :references, :diskSection, :networkSection, :virtualSystem
+  attr_accessor :url, :base_path, :name, :version, :state, :protocol, :size, :xml, :references, :diskSection, :networkSection, :virtualSystem
 
 
   def initialize 
@@ -85,7 +88,6 @@ class VmPackage
     @url.sub!(/^\/{0,2}/, '')
     @protocol.downcase
     @url.downcase
-
     if @protocol=='ftp'
       FtpVmPackage.new(uri)
     elsif @protocol=='http'
@@ -506,19 +508,11 @@ end
 class HttpVmPackage < VmPackage
   def fetch 
     url = URI.parse(URI.escape(self.uri))
-    Net::HTTP.start(url.host) { |http|
-      resp = http.get(url.path)
-      open(@name, "wb") { |file|
-        file.write(resp.body)
-      }
-    }
-
-    @xml = Nokogiri::XML(File.open(@name)) do |config|
-      config.strict.noent
-      config.strict
+    
+    @xml = Nokogiri::XML(open(url)) do |config|
+      config.noblanks.strict.noent
     end
 
-    File.unlink(@name)   
     loadElementRefs
   end
 end
