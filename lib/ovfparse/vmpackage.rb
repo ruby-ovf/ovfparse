@@ -147,12 +147,12 @@ class VmPackage
   
   # Returns the first child node of the passed node whose name matches the passed name.
   def getChildByName(node, childName)
-     return node.children.detect{ |element| element.name == childName}
+     return node.nil? ? nil : node.children.detect{ |element| element.name == childName}
   end
 
   # Returns every child node of the passed node whose name matches the passed name.
   def getChildrenByName(node, childName)
-     return node.children.select{ |element| element.name == childName}
+     return node.nil? ? [] : node.children.select{ |element| element.name == childName}
   end
 
   def referenced_file(element) 
