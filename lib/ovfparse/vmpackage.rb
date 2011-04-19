@@ -407,22 +407,23 @@ puts "Done with schema parse"
      element_list.each { |element_details|
         updated_value = updated_element[element_details['element_ref']]
         element_node = parent_node.xpath(element_details['full_name'])[0]
-        if((updated_value == '' || updated_value.nil?) && !element_node.nil?)
-           element_node.unlink
-        elsif(updated_value != '' && !updated_value.nil?)
-           element_node = element_node.nil? ? parent_node.add_child(xml.create_element(element_details['node_ref'], updated_value)) : parent_node.add_child(element_node)
-           element_node.content = updated_value
+        #if((updated_value == '' || updated_value.nil?) && !element_node.nil?)
+        #   element_node.unlink
+        #elsif(updated_value != '' && !updated_value.nil?)
+           element_node = element_node.nil? ? parent_node.add_child(xml.create_element(element_details['node_ref'], {})) : parent_node.add_child(element_node)
+           element_node.content = updated_value || ''
            if(element_details['required'])
               element_node['ovf:required'] = 'false'
            end
-        end
+       # end
      }
   end
 
   def setAttributes(updated_element, parent_node, attribute_list)
      attribute_list.each { |attribute_details|
         updated_value = updated_element[attribute_details['attribute_ref']]
-        (updated_value == '' || updated_value.nil?) ? parent_node.delete(attribute_details['node_ref']) : parent_node[attribute_details['full_name']] = updated_value
+       # (updated_value == '' || updated_value.nil?) ? parent_node.delete(attribute_details['node_ref']) :
+        parent_node[attribute_details['full_name']] = updated_value || ''
      }
   end
 
