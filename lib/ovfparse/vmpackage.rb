@@ -123,25 +123,11 @@ class VmPackage
   def loadElementRefs
      children = @xml.root.children
 
-     @references = children[0]
-     if(@references.name != 'References')
-        @references = getChildByName(xml.root, 'References')
-     end
+     @references = getChildByName(xml.root, 'References')
+     @virtualSystem = getChildByName(xml.root, 'VirtualSystem')
 
-     @diskSection = children[1]
-     if(@diskSection.name != 'DiskSection')
-        @diskSection = getChildByName(xml.root, 'DiskSection')
-     end
-
-     @networkSection = children[2]
-     if(@networkSection.name != 'NetworkSection')
-        @networkSection = getChildByName(xml.root, 'NetworkSection')
-     end
-
-     @virtualSystem = children[3]
-     if(@virtualSystem.name != 'VirtualSystem')
-        @virtualSystem = getChildByName(xml.root, 'VirtualSystem')
-     end
+     @diskSection = getChildByName(xml.root, 'DiskSection') || @virtualSystem.add_previous_sibling(xml.create_element('DiskSection', {}))
+     @networkSection = getChildByName(xml.root, 'NetworkSection') || @virtualSystem.add_previous_sibling(xml.create_element('NetworkSection', {}))
 
   end
   
@@ -190,7 +176,9 @@ class VmPackage
   end
 
   def checkschema(schema)
-    xsd = Nokogiri::XML::Schema(schema)
+puts "Starting schema parse"
+    xsd = Nokogiri::XML::Schema(File.open(schema))
+puts "Done with schema parse"
     response = ""
 
     isValid = true    
@@ -203,7 +191,7 @@ class VmPackage
   end
 
   def getVmName
-    return virtualSystem['id']
+    return virtualSystem['id'] || ''
   end
 
   def getVmDescription
@@ -212,11 +200,13 @@ class VmPackage
   end
 
   def getVmOS_ID
-    return getChildByName(virtualSystem, 'OperatingSystemSection')['id']
+    osNode = getChildByName(virtualSystem, 'OperatingSystemSection')
+    return osNode.nil? ? '' : osNode['id']
   end
 
   def getVmOS
-    return OS_ID_TABLE[getVmOS_ID.to_i]
+    os = getVmOS_ID
+    return os == '' ? '' : OS_ID_TABLE[os.to_i]
   end 
 
 
@@ -403,7 +393,9 @@ class VmPackage
      elsif(new_icon != '' && !new_icon.nil?)
         if(iconNode.nil?)
            productNode.add_child(xml.create_element('Icon', {'ovf:fileRef' => productNode['class'] + '_icon'}))
-           references.add_child(xml.create_element('File', {'ovf:id' => productNode['class'] + '_icon', 'ovf:href' => new_icon}))
+           iconRef = getChildrenByName(references, 'File').detect { |fileNode| fileNode['href'] == new_icon} ||
+              references.add_child(xml.create_element('File', {'ovf:href' => new_icon}))
+           iconRef['ovf:id'] = productNode['class'] + '_icon'
         else
            productNode.add_child(iconNode)
            getChildrenByName(references, 'File').detect { |fileNode| fileNode['id'] == iconNode['fileRef']}['ovf:href'] = new_icon
