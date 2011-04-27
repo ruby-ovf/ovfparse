@@ -176,9 +176,7 @@ class VmPackage
   end
 
   def checkschema(schema)
-puts "Starting schema parse"
     xsd = Nokogiri::XML::Schema(File.open(schema))
-puts "Done with schema parse"
     response = ""
 
     isValid = true    
@@ -328,9 +326,28 @@ puts "Done with schema parse"
      }
   end
 
+  def removeDisksFromVirtualHardwareSection
+     vhs = getChildByName(virtualSystem, 'VirtualHardwareSection') || virtualSystem.add_child(xml.create_element('VirtualHardwareSection', {}))
+     items = getChildrenByName(vhs, 'Item')
+     items.each { |item|
+        id = getChildByName(item, 'ResourceType')
+        if(id.content == '17')
+           parentID = getChildByName(item, 'Parent').content
+           parent = items.detect { |potentialParent| getChildByName(potentialParent, 'InstanceID').content == parentID) }
+           unless parent.nil?
+              parent.unlink
+           end
+           item.unlink
+        end
+     }
+  end
+
   def setVmDisks(disks)
+     removeDisksFromVirtualHardwareSection
+
      fileNodes = getChildrenByName(references, 'File')
      diskNodes = getChildrenByName(diskSection, 'Disk')
+     vhs = getChildByName(virtualSystem, 'VirtualHardwareSection')
 
      icons = Array.new
      getChildrenByName(getChildByName(virtualSystem, 'ProductSection'), 'Icon').each { |node|
@@ -356,12 +373,50 @@ puts "Done with schema parse"
         end
      }
 
+     # Find the highest instance ID
+     maxAddress = 0
+     maxID = 0
+     items = getChildrenByName(vhs, 'Item')
+     items.each { |item|
+        itemID = getChildByName(item, 'InstanceID').content.to_i
+        if(itemID > maxID)
+           maxID = itemID
+        end
+
+        # Find the highest address of any existing IDE controllers, for CD drives and stuff
+        itemAddress = getChildByName(item, 'Address').content
+        if(content != '' && content.to_i > maxAddress
+           maxAddress = content.to_i
+        end
+     }
+
+     rasdNamespace = xml.root.namespace_definitions.detect{ |ns| ns.prefix == 'rasd' }
+
      disks.each { |disk|
         if( (fileNodes.detect { |node| disk.location == node['href'] }).nil?)
            diskSection.add_child(xml.create_element('Disk', {'ovf:capacity' => disk.size.to_s, 'ovf:capacityAllocationUnits' => "byte * 2^30", 'ovf:diskId' => disk.name, 'ovf:fileRef' => disk.name + '_disk', 'ovf:format' => "http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" }))
            references.add_child(xml.create_element('File', {'ovf:href' => disk.location, 'ovf:id' => disk.name + '_disk'}))
         end
+
+        maxAddress += 1
+        maxID += 1
+        newController = vhs.add_child(xml.create_element('Item', {}))
+        newController.add_child(xml.create_element('Address', maxAddress.to_s)).namespace = rasdNamespace
+        newController.add_child(xml.create_element('Description', "IDE Controller for " + disk.name)).namespace = rasdNamespace
+        newController.add_child(xml.create_element('ElementName', "IDEController" + maxAddress.to_s)).namespace = rasdNamespace
+        newController.add_child(xml.create_element('InstanceID', maxID.to_s)).namespace = rasdNamespace
+        newController.add_child(xml.create_element('ResourceType', "5")).namespace = rasdNamespace
+
+        maxID += 1
+        newDisk = vhs.add_child(xml.create_element('Item', {}))
+        newDisk.add_child(xml.create_element('AddressOnParent', "0")).namespace = rasdNamespace
+        newDisk.add_child(xml.create_element('ElementName', disk.name)).namespace = rasdNamespace
+        newDisk.add_child(xml.create_element('HostResource', "ovf:/disk/" + disk.name + "_disk")).namespace = rasdNamespace
+        newDisk.add_child(xml.create_element('InstanceID', maxID.to_s)).namespace = rasdNamespace
+        newDisk.add_child(xml.create_element('Parent', (maxID - 1).to_s)).namespace = rasdNamespace
+        newDisk.add_child(xml.create_element('ResourceType', "17")).namespace = rasdNamespace
      }
+
   end
 
   def setVmAttributes(attributes)
