@@ -298,8 +298,20 @@ class VmPackage
     }
   end
 
+  def removeNetworksFromVirtualHardwareSection
+     vhs = getChildByName(virtualSystem, 'VirtualHardwareSection') || virtualSystem.add_child(xml.create_element('VirtualHardwareSection', {}))
+     items = getChildrenByName(vhs, 'Item')
+     items.each { |item|
+        id = getChildByName(item, 'ResourceType')
+        if(id.content == '10')
+           item.unlink
+        end
+     }
+  end
+
   def setVmNetworks(networks)
      networkNodes = getChildrenByName(networkSection, 'Network')
+     vhs = getChildByName(virtualSystem, 'VirtualHardwareSection')
 
      networkNodes.each { |node|
         updated_network = networks.detect { |network| network.location == node['name'] }
@@ -316,6 +328,19 @@ class VmPackage
         end
      }
 
+     # Find the highest instance ID
+     maxID = 0
+     items = getChildrenByName(vhs, 'Item')
+     items.each { |item|
+        itemID = getChildByName(item, 'InstanceID').content.to_i
+        if(itemID > maxID)
+           maxID = itemID
+        end
+     }
+
+     rasdNamespace = xml.root.namespace_definitions.detect{ |ns| ns.prefix == 'rasd' }
+     netCount = 0
+
      networks.each { |network|
         if( (networkNodes.detect { |node| network.location == node['name'] }).nil?)
            networkNode = networkSection.add_child(xml.create_element('Network', {'ovf:name' => network.location}))
@@ -323,6 +348,16 @@ class VmPackage
               networkNode.add_child(xml.create_element('Description', network.notes))
            end
         end
+
+        maxID += 1
+        newNetwork = vhs.add_child(xml.create_element('Item', {}))
+        newNetwork.add_child(xml.create_element('AutomaticAllocation', "true")).namespace = rasdNamespace
+        newNetwork.add_child(xml.create_element('Connection', network.location)).namespace = rasdNamespace
+        newNetwork.add_child(xml.create_element('ElementName', "ethernet" + netCount.to_s)).namespace = rasdNamespace
+        newNetwork.add_child(xml.create_element('InstanceID', maxID.to_s)).namespace = rasdNamespace
+        newNetwork.add_child(xml.create_element('ResourceSubType', "E1000")).namespace = rasdNamespace
+        newNetwork.add_child(xml.create_element('ResourceType', "10")).namespace = rasdNamespace
+        netCount += 1
      }
   end
 
@@ -333,7 +368,7 @@ class VmPackage
         id = getChildByName(item, 'ResourceType')
         if(id.content == '17')
            parentID = getChildByName(item, 'Parent').content
-           parent = items.detect { |potentialParent| getChildByName(potentialParent, 'InstanceID').content == parentID) }
+           parent = items.detect { |potentialParent| getChildByName(potentialParent, 'InstanceID').content == parentID }
            unless parent.nil?
               parent.unlink
            end
@@ -385,7 +420,7 @@ class VmPackage
 
         # Find the highest address of any existing IDE controllers, for CD drives and stuff
         itemAddress = getChildByName(item, 'Address').content
-        if(content != '' && content.to_i > maxAddress
+        if(content != '' && content.to_i > maxAddress)
            maxAddress = content.to_i
         end
      }
