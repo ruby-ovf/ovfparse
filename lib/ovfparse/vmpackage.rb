@@ -176,11 +176,10 @@ class VmPackage
   end
 
   def checkschema(schema)
-    xsd = Nokogiri::XML::Schema(File.open(schema))
     response = ""
 
     isValid = true    
-    xsd.validate(@xml).each do |error|
+    schema.validate(@xml).each do |error|
       response << error.message + "\n"
       isValid = false
     end
@@ -310,6 +309,8 @@ class VmPackage
   end
 
   def setVmNetworks(networks)
+     removeNetworksFromVirtualHardwareSection
+
      networkNodes = getChildrenByName(networkSection, 'Network')
      vhs = getChildByName(virtualSystem, 'VirtualHardwareSection')
 
@@ -419,9 +420,12 @@ class VmPackage
         end
 
         # Find the highest address of any existing IDE controllers, for CD drives and stuff
-        itemAddress = getChildByName(item, 'Address').content
-        if(content != '' && content.to_i > maxAddress)
-           maxAddress = content.to_i
+        itemAddress = getChildByName(item, 'Address')
+        unless itemAddress.nil?
+           content = itemAddress.content
+           if(content != '' && content.to_i > maxAddress)
+              maxAddress = content.to_i
+           end
         end
      }
 
@@ -446,7 +450,7 @@ class VmPackage
         newDisk = vhs.add_child(xml.create_element('Item', {}))
         newDisk.add_child(xml.create_element('AddressOnParent', "0")).namespace = rasdNamespace
         newDisk.add_child(xml.create_element('ElementName', disk.name)).namespace = rasdNamespace
-        newDisk.add_child(xml.create_element('HostResource', "ovf:/disk/" + disk.name + "_disk")).namespace = rasdNamespace
+        newDisk.add_child(xml.create_element('HostResource', "ovf:/disk/" + disk.name)).namespace = rasdNamespace
         newDisk.add_child(xml.create_element('InstanceID', maxID.to_s)).namespace = rasdNamespace
         newDisk.add_child(xml.create_element('Parent', (maxID - 1).to_s)).namespace = rasdNamespace
         newDisk.add_child(xml.create_element('ResourceType', "17")).namespace = rasdNamespace
