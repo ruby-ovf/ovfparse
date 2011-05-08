@@ -3,7 +3,7 @@ require 'rake/gempackagetask'
 spec = Gem::Specification.new do |s| 
   s.name = "ovfparse"
   s.description = "Uses net/* libraries and nokogiri xml parser to reach out and retrieve .ovf or .ova packages and parse them."
-  s.version = "0.0.95"
+  s.version = "0.0.96"
   s.author = "Jim Barkley"
   s.email = "jbarkley@mitre.org"
   s.homepage = "http://github.com/ruby-ovf/ovfparse"

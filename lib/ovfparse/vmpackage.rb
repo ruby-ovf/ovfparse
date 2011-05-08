@@ -403,6 +403,7 @@ class VmPackage
            end
         else
            file_node['ovf:id'] = updated_disk.name + '_disk'
+           old_disk_node = old_disk_node || diskSection.add_child(xml.create_element('Disk', {}))
            old_disk_node['ovf:fileRef'] = updated_disk.name + '_disk'
            old_disk_node['ovf:capacity'] = updated_disk.size.to_s
            old_disk_node['ovf:diskId'] = updated_disk.name
@@ -500,7 +501,7 @@ class VmPackage
   def setElements(updated_element, parent_node, element_list)
      element_list.each { |element_details|
         updated_value = updated_element[element_details['element_ref']]
-        element_node = parent_node.xpath(element_details['full_name'])[0]
+        element_node = getChildByName(parent_node, element_details['full_name'])
         #if((updated_value == '' || updated_value.nil?) && !element_node.nil?)
         #   element_node.unlink
         #elsif(updated_value != '' && !updated_value.nil?)
