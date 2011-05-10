@@ -407,6 +407,8 @@ class VmPackage
            old_disk_node['ovf:fileRef'] = updated_disk.name + '_disk'
            old_disk_node['ovf:capacity'] = updated_disk.size.to_s
            old_disk_node['ovf:diskId'] = updated_disk.name
+           old_disk_node['ovf:capacityAllocationUnits'] = "byte * 2^30"
+           old_disk_node['ovf:format'] = "http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" 
         end
      }
 
