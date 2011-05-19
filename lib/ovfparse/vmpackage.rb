@@ -368,14 +368,80 @@ class VmPackage
      items.each { |item|
         id = getChildByName(item, 'ResourceType')
         if(id.content == '17')
-           parentID = getChildByName(item, 'Parent').content
-           parent = items.detect { |potentialParent| getChildByName(potentialParent, 'InstanceID').content == parentID }
-           unless parent.nil?
-              parent.unlink
-           end
            item.unlink
         end
      }
+  end
+
+  def getOpenChannelOnIDEController(controller, items)
+     currentAddress = getChildByName(controller, 'InstanceID').content
+     controllerChildren = items.select{ |item| 
+        parentNode = getChildByName(item, 'Parent')
+        unless(parentNode.nil?)
+           parentNode.content == currentAddress
+        end
+     }
+     childAddresses = Array.new
+     controllerChildren.each{ |child|
+        childAddresses.push(getChildByName(child, 'AddressOnParent').content)
+     }
+     if(childAddresses.length == 0 || (childAddresses.length == 1 && childAddresses[0] == '1'))
+        return '0'
+     elsif(childAddresses.length == 1)
+        return '1'
+     else
+        return false
+     end
+  end
+
+  def buildNewIDEController(vhs, rasdNamespace, newID, newAddress)
+     new_controller = vhs.add_child(xml.create_element('Item', {}))
+     new_controller.add_child(xml.create_element('Address', newAddress)).namespace = rasdNamespace
+     new_controller.add_child(xml.create_element('Description', "IDE Controller " + newAddress)).namespace = rasdNamespace
+     new_controller.add_child(xml.create_element('ElementName', "IDEController" + newAddress)).namespace = rasdNamespace
+     new_controller.add_child(xml.create_element('InstanceID', newID)).namespace = rasdNamespace
+     new_controller.add_child(xml.create_element('ResourceType', "5")).namespace = rasdNamespace
+  end
+
+  def getFirstOpenIDEAddress(vhs, rasdNamespace, maxID)
+     items = getChildrenByName(vhs, 'Item')
+     ide_controllers = items.select{ |item| getChildByName(item, 'ResourceType').content == '5' }
+
+     if(ide_controllers.length == 0)
+        buildNewIDEController(vhs, rasdNamespace, maxID, '0')
+        return [maxID, '0']
+
+     elsif(ide_controllers.length == 1)
+        controller = ide_controllers[0]
+        controllerAddress = getChildByName(controller, 'Address').content
+        open_address = getOpenChannelOnIDEController(controller, items)
+        if(open_address == '0' || open_address == '1')
+           return [getChildByName(controller, 'InstanceID').content, open_address]
+        elsif(!open_address && controllerAddress == '0')
+           buildNewIDEController(vhs, rasdNamespace, maxID, '1')
+           return [maxID, '0']
+        else
+           buildNewIDEController(vhs, rasdNamespace, maxID, '0')
+           return [maxID, '0']
+        end
+
+     else
+        controller = ide_controllers[0]
+        controllerAddress = getChildByName(controller, 'Address').content
+        open_address = getOpenChannelOnIDEController(controller, items)
+        if(open_address == '0' || open_address == '1')
+           return [getChildByName(controller, 'InstanceID').content, open_address]
+        else
+           controller = ide_controllers[1]
+           controllerAddress = getChildByName(controller, 'Address').content
+           open_address = getOpenChannelOnIDEController(controller, items)
+           if(open_address == '0' || open_address == '1')
+              return [getChildByName(controller, 'InstanceID').content, open_address]
+           else
+              return false
+           end
+        end
+     end
   end
 
   def setVmDisks(disks)
@@ -413,22 +479,12 @@ class VmPackage
      }
 
      # Find the highest instance ID
-     maxAddress = 0
      maxID = 0
      items = getChildrenByName(vhs, 'Item')
      items.each { |item|
         itemID = getChildByName(item, 'InstanceID').content.to_i
         if(itemID > maxID)
            maxID = itemID
-        end
-
-        # Find the highest address of any existing IDE controllers, for CD drives and stuff
-        itemAddress = getChildByName(item, 'Address')
-        unless itemAddress.nil?
-           content = itemAddress.content
-           if(content != '' && content.to_i > maxAddress)
-              maxAddress = content.to_i
-           end
         end
      }
 
@@ -440,23 +496,21 @@ class VmPackage
            references.add_child(xml.create_element('File', {'ovf:href' => disk.location, 'ovf:id' => disk.name + '_disk'}))
         end
 
-        maxAddress += 1
         maxID += 1
-        newController = vhs.add_child(xml.create_element('Item', {}))
-        newController.add_child(xml.create_element('Address', maxAddress.to_s)).namespace = rasdNamespace
-        newController.add_child(xml.create_element('Description', "IDE Controller for " + disk.name)).namespace = rasdNamespace
-        newController.add_child(xml.create_element('ElementName', "IDEController" + maxAddress.to_s)).namespace = rasdNamespace
-        newController.add_child(xml.create_element('InstanceID', maxID.to_s)).namespace = rasdNamespace
-        newController.add_child(xml.create_element('ResourceType', "5")).namespace = rasdNamespace
-
-        maxID += 1
-        newDisk = vhs.add_child(xml.create_element('Item', {}))
-        newDisk.add_child(xml.create_element('AddressOnParent', "0")).namespace = rasdNamespace
-        newDisk.add_child(xml.create_element('ElementName', disk.name)).namespace = rasdNamespace
-        newDisk.add_child(xml.create_element('HostResource', "ovf:/disk/" + disk.name)).namespace = rasdNamespace
-        newDisk.add_child(xml.create_element('InstanceID', maxID.to_s)).namespace = rasdNamespace
-        newDisk.add_child(xml.create_element('Parent', (maxID - 1).to_s)).namespace = rasdNamespace
-        newDisk.add_child(xml.create_element('ResourceType', "17")).namespace = rasdNamespace
+        address = getFirstOpenIDEAddress(vhs, rasdNamespace, maxID)
+        if(!address)
+           # PANIC BECAUSE THIS IS BAD MAN, NO AVAILABLE IDE SLOTS
+           raise "No IDE slots available"
+        else
+           maxID += 1
+           newDisk = vhs.add_child(xml.create_element('Item', {}))
+           newDisk.add_child(xml.create_element('AddressOnParent', address[1])).namespace = rasdNamespace
+           newDisk.add_child(xml.create_element('ElementName', disk.name)).namespace = rasdNamespace
+           newDisk.add_child(xml.create_element('HostResource', "ovf:/disk/" + disk.name)).namespace = rasdNamespace
+           newDisk.add_child(xml.create_element('InstanceID', maxID.to_s)).namespace = rasdNamespace
+           newDisk.add_child(xml.create_element('Parent', address[0])).namespace = rasdNamespace
+           newDisk.add_child(xml.create_element('ResourceType', "17")).namespace = rasdNamespace
+        end
      }
 
   end
@@ -668,3 +722,4 @@ end
 
 class Vc4VmPackage < VmPackage
 end
+
