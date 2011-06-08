@@ -356,7 +356,7 @@ class VmPackage
         newNetwork.add_child(xml.create_element('Connection', network.location)).namespace = rasdNamespace
         newNetwork.add_child(xml.create_element('ElementName', "ethernet" + netCount.to_s)).namespace = rasdNamespace
         newNetwork.add_child(xml.create_element('InstanceID', maxID.to_s)).namespace = rasdNamespace
-        newNetwork.add_child(xml.create_element('ResourceSubType', "E1000")).namespace = rasdNamespace
+        newNetwork.add_child(xml.create_element('ResourceSubType', "PCNet32")).namespace = rasdNamespace
         newNetwork.add_child(xml.create_element('ResourceType', "10")).namespace = rasdNamespace
         netCount += 1
      }
