@@ -234,7 +234,13 @@ class VmPackage
     }
 
     getChildrenByName(diskSection, 'Disk').each { |node|
-      disks.push({ 'name' => node['diskId'], 'location' => filenames[node['fileRef']], 'size' => node['capacity'] })
+      capacity = node['capacity']
+      units = node['capacityAllocationUnits']
+      if(units == "byte * 2^30")
+         capacity = (capacity.to_i * 1073741824).to_s
+      end
+      thin_size = node['populatedSize']
+      disks.push({ 'name' => node['diskId'], 'location' => filenames[node['fileRef']], 'size' => capacity, 'thin_size' => (thin_size || "-1") })
     }
 
     return disks
@@ -652,7 +658,6 @@ end
 class HttpVmPackage < VmPackage
   def fetch 
     url = URI.parse(URI.escape(self.uri))
-    
     @xml = Nokogiri::XML(open(url)) do |config|
       config.noblanks.strict.noent
     end
