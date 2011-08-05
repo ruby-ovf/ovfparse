@@ -25,7 +25,22 @@ class MarketplaceRepository < VmRepository
 
   def fetch
     #retrieve data from http server
-    raw_html = open(uri)
+    begin
+      raw_html = open(uri)
+    rescue
+      if(uri.match(/\/$/) != nil)
+        begin
+          raw_html = open(uri[0..-2])
+          @url = @url[0..-2]
+        rescue Exception => e
+          #something useful
+          raise "Tried getting rid of the trailing slash but still no dice: " + e.message
+        end
+      else
+        #something useful
+        raise "No trailing slash so this is probably a dead URL"
+      end
+    end
     if (raw_html)  
 
       #parse out package list from index html

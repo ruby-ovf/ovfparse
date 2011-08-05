@@ -18,9 +18,24 @@ class HttpVmRepository < VmRepository
 
 
   def get 
-    #TODO slap a '/' char on the end of self.uri if it doesn't have one, otherwise many servers return 403 
-    url = URI.parse(URI.escape(self.uri))
-    req = Net::HTTP::Get.new(url.path)
+    begin
+      url = URI.parse(URI.escape(self.uri))
+      req = Net::HTTP::Get.new(url.path)
+    rescue
+      if(uri.match(/\/$/) == nil)
+        begin
+          url = URI.parse(URI.escape(self.uri + '/'))
+          req = Net::HTTP::Get.new(url.path)
+          @url = @url + '/'
+        rescue Exception => e
+          raise "We tried it with and without a trailing / but it still doesn't work, this thing is broken: " + e.message
+          # TODO: log the fact that this repo sucks at life
+        end
+      else
+        raise "This has a trailing slash and it doesn't work so it's a busted URL"
+      end
+    end
+
     res = Net::HTTP.start(url.host, url.port) {|http|
       http.request(req)
     }
