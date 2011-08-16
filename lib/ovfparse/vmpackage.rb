@@ -238,6 +238,10 @@ class VmPackage
       units = node['capacityAllocationUnits']
       if(units == "byte * 2^30")
          capacity = (capacity.to_i * 1073741824).to_s
+      elsif(units == "byte * 2^20")
+         capacity = (capacity.to_i * 1048576).to_s
+      elsif(units == "byte * 2^10")
+         capacity = (capacity.to_i * 1024).to_s
       end
       thin_size = node['populatedSize']
       disks.push({ 'name' => node['diskId'], 'location' => filenames[node['fileRef']], 'size' => capacity, 'thin_size' => (thin_size || "-1") })
