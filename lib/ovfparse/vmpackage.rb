@@ -25,7 +25,8 @@ class VmPackage
 
   # List of attributes in an OVF product that we will extract / set
   PRODUCT_ATTRIBUTES = [ {'full_name' => 'ovf:instance', 'node_ref' => 'instance', 'attribute_ref' => 'instance'},
-                         {'full_name' => 'ovf:class', 'node_ref' => 'class', 'attribute_ref' => 'product_class'} ]
+                         {'full_name' => 'ovf:class', 'node_ref' => 'class', 'attribute_ref' => 'product_class'},
+                         {'full_name' => 'cops:cpetag', 'node_ref' => 'cpetag', 'attribute_ref' => 'cpe_tag'} ]
 
   # List of elements in an OVF product that we will extract / set
   PRODUCT_ELEMENTS = [ {'full_name' => 'Info', 'node_ref' => 'Info', 'element_ref' => 'description', 'required' => false},
