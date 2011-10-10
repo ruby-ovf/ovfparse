@@ -1,3 +1,4 @@
+require 'nokogiri'
 require 'open-uri'
 
 class VmPackage 
@@ -237,7 +238,9 @@ class VmPackage
     getChildrenByName(diskSection, 'Disk').each { |node|
       capacity = node['capacity']
       units = node['capacityAllocationUnits']
-      if(units == "byte * 2^30")
+      if(units == "byte * 2^40")
+         capacity = (capacity.to_i * 1099511627776).to_s
+      elsif(units == "byte * 2^30")
          capacity = (capacity.to_i * 1073741824).to_s
       elsif(units == "byte * 2^20")
          capacity = (capacity.to_i * 1048576).to_s
@@ -261,6 +264,13 @@ class VmPackage
     return networks
   end
 
+  def getVmReferences
+    refs = Array.new
+    getChildrenByName(references, 'File').each { |node|
+       refs.push({'href' => node['href'], 'id' => node['id'], 'size' => node['size']})
+    }
+    return refs
+  end
 
   def getVmCPUs
     return getVirtualQuantity(3)
@@ -564,6 +574,17 @@ class VmPackage
         end
      end
   end
+
+   def setPropertyDefault(key, newVal)
+      getChildrenByName(virtualSystem, "ProductSection").each{ |product|
+         getChildrenByName(product, "Property").each{ |property|
+            if(property['key'] == key)
+               property['ovf:value'] = newVal
+               return
+            end
+         }
+      }
+   end
 
   def setElements(updated_element, parent_node, element_list)
      element_list.each { |element_details|

@@ -8,6 +8,7 @@ path = File.expand_path(File.dirname(__FILE__))
 
 require path + '/ovfparse/vmrepository'
 require path + '/ovfparse/vmpackage'
+require path + '/ovfparse/vmcollection'
 require path + '/ovfparse/os_id_table'
 require path + '/ovfparse/esx4_vmrepository'
 require path + '/ovfparse/file_vmrepository'
