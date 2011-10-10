@@ -100,51 +100,24 @@ class VmCollection
       return [isValid, response]
    end
 
-   def getVmName
-      return virtualSystem['id'] || ''
+   def getCollectionName
+      return virtualSystemCollection['id'] || ''
    end
 
-   def getVmDescription
-      # ???
+   def getCollectionDescription
+      descNode = getChildByName(virtualSystemCollection, 'Info')
+      return descNode.nil? ? '' : descNode.content
    end
 
-   def getVmDisks
-      disks = Array.new
-      filenames = Hash.new
-      getChildrenByName(references, 'File').each { |node|
-         filenames[node['id']] = node['href']
-      }
-
-      getChildrenByName(diskSection, 'Disk').each { |node|
-         capacity = node['capacity']
-         units = node['capacityAllocationUnits']
-         if(units == "byte * 2^40")
-            capacity = (capacity.to_i * 1099511627776).to_s
-         elsif(units == "byte * 2^30")
-            capacity = (capacity.to_i * 1073741824).to_s
-         elsif(units == "byte * 2^20")
-            capacity = (capacity.to_i * 1048576).to_s
-         elsif(units == "byte * 2^10")
-            capacity = (capacity.to_i * 1024).to_s
-         end
-         thin_size = node['populatedSize']
-         disks.push({ 'name' => node['diskId'], 'location' => filenames[node['fileRef']], 'size' => capacity, 'thin_size' => (thin_size || "-1") })
-      }
-
-      return disks
+   def setCollectionName(newValue)
+      virtualSystem['ovf:id'] = newValue
+      nameNode = getChildByName(virtualSystemCollection, 'Name') ||
+         getChildByName(virtualSystemCollection, 'Info').add_next_sibling(xml.create_element('Name', {}))
+      nameNode.content = newValue
    end
 
-   def getVmNetworks
-      networks = Array.new
-      getChildrenByName(networkSection, 'Network').each { |node|
-         descriptionNode = getChildByName(node, 'Description')
-         text = descriptionNode.nil? ? '' : descriptionNode.text
-         networks.push({'location' => node['name'], 'notes' => text })
-      }
-      return networks
-   end
-
-   def getVirtualSystems
+   def setCollectionDescription(newValue)
+      getChildByName(virtualSystemCollection, 'Info').content = newValue
    end
 
    def self.constructFromVmPackages(packages)

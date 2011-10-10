@@ -302,7 +302,6 @@ class VmPackage
     getChildByName(virtualSystem, 'OperatingSystemSection')['ovf:id'] = newValue.to_s
   end
 
-
   def setVmCPUs(newValue)
     setVirtualQuantity(3, newValue)
   end
@@ -665,9 +664,11 @@ class VmPackage
     return newPackage
   end
 
-  def write_xml(file)
-    xml.write_xml_to(file)
-  end
+   def writeXML(filename)
+      file = File.new(filename, "w")
+      file.puts(xml.to_s)
+      file.close
+   end
 
   # @todo make this a general purpose signing util
   def sign(signature)
