@@ -277,7 +277,7 @@ class VmCollection
             xml.NetworkSection{
                xml.Info "List of logical networks"
             }
-            xml.VirtualSystemCollection('ovf:id' => "vm_collection"){
+            xml.VirtualSystemCollection('id' => "vm_collection"){
                xml.Info "A collection of virtual machines"
             }
          }
@@ -286,6 +286,7 @@ class VmCollection
          xml.doc.children[0].add_previous_sibling(node)
       end
 
+      builder.doc.root.children[3].attribute("id").namespace = builder.doc.root.namespace_definitions.detect{ |ns| ns.prefix == "ovf"}
       newPackage = NewVmCollection.new
       newPackage.xml = builder.doc
       newPackage.loadElementRefs
@@ -324,6 +325,7 @@ class VmCollection
          }
 
          new_package.virtualSystem.children.unlink
+         new_package.virtualSystem['ovf:id'] = virtualSystem['id']
          new_package.virtualSystem.add_child(virtualSystem.clone.children)
          new_package.virtualSystem.children.each{ |child|
             child.namespace = new_package.virtualSystem.namespace

@@ -621,10 +621,10 @@ class VmPackage
           xml.NetworkSection{
              xml.Info "List of logical networks"
           }
-          xml.VirtualSystem('ovf:id' => "vm"){
+          xml.VirtualSystem('id' => "vm"){
              xml.Info "A virtual machine"
              xml.Name "New Virtual Machine"
-             xml.OperatingSystemSection('ovf:id' => "94"){
+             xml.OperatingSystemSection('id' => "94"){
                  xml.Info "The kind of guest operating system"
              }
              xml.VirtualHardwareSection{
@@ -658,6 +658,9 @@ class VmPackage
       xml.doc.children[0].add_previous_sibling(node)
     end
 
+    builder.doc.root.children[3].attribute("id").namespace = builder.doc.root.namespace_definitions.detect{ |ns| ns.prefix == "ovf"}
+    builder.doc.root.children[3].children[2].attribute("id").namespace = builder.doc.root.namespace_definitions.detect{ |ns| ns.prefix == "ovf"}
+      
     newPackage = NewVmPackage.new
     newPackage.xml = builder.doc
     newPackage.loadElementRefs
