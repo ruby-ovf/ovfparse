@@ -110,7 +110,7 @@ class VmCollection
    end
 
    def setCollectionName(newValue)
-      virtualSystem['ovf:id'] = newValue
+      virtualSystemCollection['ovf:id'] = newValue
       nameNode = getChildByName(virtualSystemCollection, 'Name') ||
          getChildByName(virtualSystemCollection, 'Info').add_next_sibling(xml.create_element('Name', {}))
       nameNode.content = newValue
